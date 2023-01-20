@@ -83,7 +83,7 @@ class HW2_sql():
     def part_aii_1(self,connection,path):
         ############### CREATE IMPORT CODE BELOW ############################
 
-       ######################################################################
+        ######################################################################
         
         sql = "SELECT COUNT(id) FROM movies;"
         cursor = connection.execute(sql)
@@ -115,7 +115,7 @@ class HW2_sql():
         sql = "SELECT COUNT(cast_id) FROM cast_bio;"
         cursor = connection.execute(sql)
         return cursor.fetchall()[0][0]
-       
+
 
     # Part b Create Indexes [1 points]
     def part_b_1(self,connection):
@@ -238,7 +238,7 @@ if __name__ == "__main__":
         print('\033[32m' + "part ai 1: " + '\033[m' + str(db.part_ai_1(conn)))
         print('\033[32m' + "part ai 2: " + '\033[m' + str(db.part_ai_2(conn)))
     except:
-         print("Error in Part a.i")
+        print("Error in Part a.i")
 
     try:
         print('\033[32m' + "Row count for Movies Table: " + '\033[m' + str(db.part_aii_1(conn,"data/movies.csv")))
@@ -302,4 +302,3 @@ if __name__ == "__main__":
     conn.close()
     #################################################################################
     #################################################################################
-  

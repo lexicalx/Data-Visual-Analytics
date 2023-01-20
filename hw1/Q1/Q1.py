@@ -306,7 +306,7 @@ def return_name()->str:
     e.g., gburdell3
     Do not return your 9 digit GTId
     """
-    return NotImplemented
+    return "tjordan60"
 
 
 # You should modify __main__ as you see fit to build/test your graph using  the TMDBAPIUtils & Graph classes.
