@@ -1,6 +1,9 @@
+#%%
 import http.client
 import json
 import csv
+from urllib.request import urlopen
+from copy import deepcopy
 
 
 #############################################################################################################################
@@ -50,7 +53,6 @@ class Graph:
             nodes_CSV = csv.reader(open(with_nodes_file))
             nodes_CSV = list(nodes_CSV)[1:]
             self.nodes = [(n[0], n[1]) for n in nodes_CSV]
-
             edges_CSV = csv.reader(open(with_edges_file))
             edges_CSV = list(edges_CSV)[1:]
             self.edges = [(e[0], e[1]) for e in edges_CSV]
@@ -61,7 +63,11 @@ class Graph:
         add a tuple (id, name) representing a node to self.nodes if it does not already exist
         The graph should not contain any duplicate nodes
         """
-        return NotImplemented
+        name = name.replace(',','') #* no commas allowed!
+        if (id,name) not in self.nodes:
+            self.nodes.append((id,name))
+            return True
+        return False
 
 
     def add_edge(self, source: str, target: str) -> None:
@@ -71,21 +77,26 @@ class Graph:
         Where 'source' is the id of the source node and 'target' is the id of the target node
         e.g., for two nodes with ids 'a' and 'b' respectively, add the tuple ('a', 'b') to self.edges
         """
-        return NotImplemented
+        # source = source.replace(',','') #* no commas allowed! whoops these are supposed to be numbers, that explains a lot
+        # target = target.replace(',','') #* no commas allowed!
+        if (source,target) not in self.edges and (target,source) not in self.edges and source != target:
+            self.edges.append((source,target))
+            return True
+        return False
 
 
     def total_nodes(self) -> int:
         """
         Returns an integer value for the total number of nodes in the graph
         """
-        return NotImplemented
+        return len(self.nodes)
 
 
     def total_edges(self) -> int:
         """
         Returns an integer value for the total number of edges in the graph
         """
-        return NotImplemented
+        return len(self.edges)
 
 
     def max_degree_nodes(self) -> dict:
@@ -96,7 +107,14 @@ class Graph:
         e.g. {'a': 8}
         or {'a': 22, 'b': 22}
         """
-        return NotImplemented
+        from collections import defaultdict
+        nodes_n_edges = defaultdict(int)
+        for source,target in self.edges:
+            nodes_n_edges[source] += 1
+            nodes_n_edges[target] += 1 #* see part a) keep only {a,b} or {b,a} A node’s degree is the number of (undirected) edges incident on it.
+        max_degree = max(nodes_n_edges.values())
+        max_nodes_n_edges = {key:value for key, value in nodes_n_edges.items() if value == max_degree}
+        return max_nodes_n_edges
 
 
     def print_nodes(self):
@@ -124,12 +142,9 @@ class Graph:
         """
         edges_path = path
         edges_file = open(edges_path, 'w', encoding='utf-8')
-
         edges_file.write("source" + "," + "target" + "\n")
-
         for e in self.edges:
             edges_file.write(e[0] + "," + e[1] + "\n")
-
         edges_file.close()
         print("finished writing edges to csv")
 
@@ -143,7 +158,6 @@ class Graph:
         """
         nodes_path = path
         nodes_file = open(nodes_path, 'w', encoding='utf-8')
-
         nodes_file.write("id,name" + "\n")
         for n in self.nodes:
             nodes_file.write(n[0] + "," + n[1] + "\n")
@@ -183,7 +197,21 @@ class  TMDBAPIUtils:
                 Note that this is an example of the structure of the list and some of the fields returned by the API.
                 The result of the API call will include many more fields for each cast member.
         """
-        return NotImplemented
+        url = "https://api.themoviedb.org/3"
+        my_key = f'?api_key={self.api_key}&language=en-US'
+        query=f'/movie/{movie_id}/credits'
+        with urlopen(url+query+my_key) as response:
+            body = response.read()
+        response = json.loads(body)
+        cast = response['cast']
+        if limit is not None:
+            cast = cast[:limit]
+        if exclude_ids is not None:
+            cast = [c for c in cast if c['id'] not in exclude_ids]
+        keep_keys = ['id', 'name', 'character','credit_id'] #* the instructions are unclear, are we supposed to drop the other fields? the ... is ... dumb
+        for i,c in enumerate(cast):
+            cast[i] = {key: c[key] for key in keep_keys}
+        return cast
 
 
     def get_movie_credits_for_person(self, person_id:str, vote_avg_threshold:float=None)->list:
@@ -201,7 +229,19 @@ class  TMDBAPIUtils:
                 'title': 'Long, Stock and Two Smoking Barrels' # the title (not original title) of the credit
                 'vote_avg': 5.0 # the float value of the vote average value for the credit}, ... ]
         """
-        return NotImplemented
+        url = "https://api.themoviedb.org/3"
+        my_key = f'?api_key={self.api_key}&language=en-US'
+        query=f'/person/{person_id}/movie_credits'
+        with urlopen(url+query+my_key) as response:
+            body = response.read()
+        response = json.loads(body)
+        movies = response['cast']
+        if vote_avg_threshold is not None:
+            movies = [m for m in movies if m['vote_average'] >= vote_avg_threshold]
+        keep_keys = ['id','title','vote_average']
+        for i,m in enumerate(movies):
+            movies[i] = {key: m[key] for key in keep_keys}
+        return movies
 
 
 #############################################################################################################################
@@ -308,18 +348,56 @@ def return_name()->str:
     """
     return "tjordan60"
 
+def get_nodes(graph)->list:
+    return [int(x) for x,y in graph.nodes]
+
+def debug_printer(graph):
+    print(f'number of nodes: {len(graph.nodes)}')
+    print(f'number of edges: {len(graph.edges)}')
+    # graph.print_edges()
+    # graph.print_nodes()
 
 # You should modify __main__ as you see fit to build/test your graph using  the TMDBAPIUtils & Graph classes.
 # Some boilerplate/sample code is provided for demonstration. We will not call __main__ during grading.
 
 if __name__ == "__main__":
 
+    # INITIALIZE GRAPH
+    # movies_viewed = []
     graph = Graph()
     graph.add_node(id='2975', name='Laurence Fishburne')
-    tmdb_api_utils = TMDBAPIUtils(api_key='<your API key>')
-
-    # call functions or place code here to build graph (graph building code not graded)
-    # Suggestion: code should contain steps outlined above in BUILD CO-ACTOR NETWORK
+    tmdb_api_utils = TMDBAPIUtils(api_key='40936685d01995edbdfc7c9ba1474e47')
+    
+    debug_printer(graph)
+    new_node = []
+    movies = tmdb_api_utils.get_movie_credits_for_person(person_id=2975,vote_avg_threshold=8.0)
+    # movies_viewed += [m['id'] for m in movies]
+    for m in movies:
+        cast = tmdb_api_utils.get_movie_cast(movie_id=m['id'],limit=3,exclude_ids=None)
+        for c in cast:
+            if graph.add_node(id=str(c['id']),name=c['name']):
+                new_node.append((c['id'],c['name']))
+            graph.add_edge(source='2975', target=str(c['id']))
+    # END BUILD BASE GRAPH
+    debug_printer(graph)
+    # BEGIN LOOP - DO 2 TIMES:
+    for _ in range(2):
+        nodes = deepcopy(new_node)
+        new_node = []
+        for node_id, node_name in nodes:
+            # print(f'node: {n}')
+            movies = tmdb_api_utils.get_movie_credits_for_person(person_id=node_id,vote_avg_threshold=8.0)
+            # movies = [m for m in movies if m['id'] not in movies_viewed] #* shouldn't do this since we aren't adding edges for all of top
+            # movies_viewed += [m['id'] for m in movies]
+            for m in movies:
+                cast = tmdb_api_utils.get_movie_cast(movie_id=m['id'],limit=3,exclude_ids=None)
+                for c in cast:
+                    if graph.add_node(id=str(c['id']),name=c['name']):
+                        new_node.append((c['id'],c['name']))
+                    graph.add_edge(source=str(node_id), target=str(c['id']))
+        print(f'new nodes: {len(new_node)}')
+        debug_printer(graph)
+    # END BUILD CO-ACTOR NETWORK
 
     graph.write_edges_file()
     graph.write_nodes_file()
