@@ -136,7 +136,7 @@ class HW2_sql():
         max(m_c.birthday),
         max(m_c.popularity)
         FROM movie_cast m_c
-        GROUP BY m_c.cast_name;
+        GROUP BY m_c.cast_id;
         """
         #* fuck if I know. I hate SQL
         ######################################################################
@@ -183,10 +183,7 @@ class HW2_sql():
         SELECT cast(COUNT(*) as REAL) as fucking
         FROM cast_bio
         )
-        SELECT printf("%.2f",(SELECT ass FROM hat) / (SELECT fucking from cunts)) as proportion
-        """
-        part_c_sql = """
-        SELECT * FROM cast_bio;
+        SELECT printf("%.2f",(SELECT ass FROM hat) / (SELECT fucking from cunts) * 100.0) as proportion
         """
         ######################################################################
         cursor = connection.execute(part_c_sql)
@@ -217,6 +214,22 @@ class HW2_sql():
             SELECT movies.title as movie_title, movies.score as movie_score, count(movies.title) as cast_count
             FROM movies
             JOIN movie_cast ON movies.id = movie_cast.movie_id
+            GROUP BY movies.id
+        )
+        SELECT movie_title, printf("%.2f", movie_score) as movie_score, cast_count
+		FROM t0
+        ORDER BY t0.movie_score DESC, cast_count, movie_title
+        LIMIT 5;
+        """
+        
+        #! WRITE MORE CLEAR INSTRUCTIONS!
+        """
+        WITH 
+        t0 as
+        (
+            SELECT movies.title as movie_title, movies.score as movie_score, count(movies.title) as cast_count
+            FROM movies
+            JOIN movie_cast ON movies.id = movie_cast.movie_id
             GROUP BY movies.title
         ),
         t1 as
@@ -230,7 +243,7 @@ class HW2_sql():
         FROM t0
         JOIN t1 on t0.cast_count = t1.cc
         WHERE t0.movie_score = t1.mms
-        ORDER BY cast_count
+        ORDER BY movie_score DESC, cast_count, movie_title
         LIMIT 5;
         """
         ######################################################################
@@ -241,14 +254,20 @@ class HW2_sql():
     def part_f(self,connection):
         ############### EDIT SQL STATEMENT ###################################
         part_f_sql = """
-        SELECT cast_id, cast_name, printf("%.2f",AVG(score)) as average_score
-        FROM movies
-        JOIN movie_cast on movie_cast.movie_id = movies.id
-            WHERE score >= 25
-            GROUP BY cast_name
-            HAVING count(*) > 3
-        ORDER BY average_score DESC, cast_name
-        LIMIT 10;
+        WITH t0 as
+        (
+                SELECT *
+                FROM movies
+                WHERE score >= 25
+        )
+                SELECT cast_id, cast_name, printf("%.2f",AVG(score)) as average_score
+                FROM t0
+                JOIN movie_cast on movie_cast.movie_id = t0.id
+                    WHERE score >= 25
+                    GROUP BY cast_name
+                    HAVING count(*) >= 3
+                ORDER BY AVG(score) DESC, cast_name
+                LIMIT 10;
         """
         ######################################################################
         cursor = connection.execute(part_f_sql)
@@ -276,16 +295,17 @@ class HW2_sql():
         ############### EDIT SQL STATEMENT ###################################
         part_g_i_sql = """
         SELECT 	cast_member_id1 as cast_id,
-                cast_name,
-                printf("%.2f",AVG(average_movie_score)) as collaboration_score
-        FROM	(SELECT 	cast_member_id1, 
-                            average_movie_score
+		cast_name,
+		printf("%.2f",AVG(average_movie_score)) as collaboration_score
+        FROM ( SELECT cast_member_id1, average_movie_score
+                FROM good_collaboration
+                UNION ALL
+                SELECT cast_member_id2, average_movie_score
                 FROM good_collaboration
                 )
-        JOIN movie_cast on cast_id = cast_member_id1
-        -- WHERE cast_id = 2
+        JOIN cast_bio on cast_id = cast_member_id1
         GROUP BY cast_member_id1
-        ORDER BY collaboration_score DESC, cast_name
+        ORDER BY AVG(average_movie_score) DESC, cast_name
         LIMIT 5;
         """
         ######################################################################
