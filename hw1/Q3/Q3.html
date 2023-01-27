@@ -5,7 +5,7 @@
 
 <head>
   <style>
-    <!-- define CSS rules -->
+    /* No style rules here yet */
   </style>
 <html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
 <!--[if gte mso 9]><xml>
@@ -36,26 +36,50 @@
 
   <script>
     // define the dimensions and margins for the graph
-
+    var margin = ({top: 20, right: 30, bottom: 30, left: 40});
+    var width = 960 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
+    var barPadding = 1;
 
     // define function to parse time in years format
-	
+    var formatTime = d3.timeParse("%Y");
 
     // create scales x & y for X and Y axis and set their ranges
+    // not sure if .scale.linear() or .scaleLinear()
+    var data = [] // IDK WTF IS GOING ON
+    var x =  d3.scaleTime()
+              .domain([
+              d3.min(data, function(d) { return d.year.Date; }),
+              d3.max(data, function(d) { return d.year.Date; })
+            ])
+            .range([margin.left, width - margin.right]);
 
+    var y =  d3.scaleLinear()
+                    .domain([0 , d3.max(data, function(d) { return d.running_total; })]) //[d3.min(data, function(d) { return d[1]; })
+                    .range([margin.bottom, height-margin.top]);
 
+    /* var x = d3.scale.linear()
+                    .range([0, width]);
+
+    var y = d3.scale.linear()
+                    .range([height, 0]); */
 
     // append svg element to the body of the page
     // set dimensions and position of the svg element
-    var svg = d3.select("body").append("svg") 
-
+    var svg = d3.select("body").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g");
+    //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    // idk
 
     // Get the data
-	var pathToCsv = "";		// path to csv
+	var pathToCsv = "q3.csv";		// path to csv
 	
     d3.dsv(",", pathToCsv, function (d) {
       return {
-        // format data attributes if required
+        year: formatTime(d.year),
+        running_total: parseInt(d.running_total)
       }
     }).then(function (data) {
       console.log(data); // you should see the data in your browser's developer tools console 
@@ -67,21 +91,61 @@
       y.domain();
 
       // Add bars to svg - create new elements based on your data
-      svg.selectAll()
-
+			svg.selectAll("rect")
+          .data(data)
+          .enter()
+          .append("rect")
+          .attr("x", function(d, i) {
+            return i * ((width - margin.left - margin.right) / data.length) + margin.left;
+          })
+          .attr("y", function(d) {
+            return height - margin.bottom;
+          })
+          .attr("width", (width - margin.left - margin.right) / data.length - barPadding)
+          .attr("height", function(d) {
+            // console.log('data',data)
+            // console.log('d', d)
+            // console.log(d.running_total)
+            console.log(y(d.running_total))
+            return y(d.running_total); #TODO FIGURE OUT WHAT THE HELL IS WRONG WITH ALL THE THIS BULLISHIT
+          });
 
       // Add the X Axis
-      svg.append()
+      var x_axis = d3.axisBottom(x).ticks(10); //.attr("id", "x_axis").ticks(10)?
+      // how the fuck am I supposed to make the .attr?
+      
+      svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (height - margin.left) + ")")
+				.call(x_axis);
 
       // Add the text label for X Axis
-      svg.append()
+      svg.append("text")
+        .attr("id", "x_axis_label")
+        .attr("text-anchor", "end")
+        .attr("x", width)
+        .attr("y", height - 6)
+        .text("Year");
 
       // Add the Y Axis
-      svg.append()
-
+      var y_axis = d3.axisLeft(y).ticks(10); /*
+                    .attr("id", "y_axis")
+                    .scale(y)
+                    .ticks(10); */
+      
+      svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + margin.bottom + ",0)")
+				.call(y_axis);
+      
       // Add the text label for Y axis
-      svg.append()
-
+      svg.append("text")
+        .attr("id", "y_axis_label")
+        .attr("text-anchor", "end")
+        .attr("y", 6)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Running Total");
 
     }).catch(function (error) {
       console.log(error);
