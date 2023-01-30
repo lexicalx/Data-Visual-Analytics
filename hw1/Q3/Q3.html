@@ -4,6 +4,9 @@
 <!-- run: http-server & -->
 
 <head>
+  <title> 
+    Running Total of TMDb Movies by Year 
+  </title>
   <style>
     /* No style rules here yet */
   </style>
@@ -33,7 +36,6 @@
   <script src="lib/d3-dsv/d3-dsv.min.js"></script>
   <script src="lib/d3-fetch/d3-fetch.min.js"></script>
 
-
   <script>
     // define the dimensions and margins for the graph
     var margin = ({top: 20, right: 30, bottom: 30, left: 40});
@@ -49,14 +51,16 @@
     var data = [] // IDK WTF IS GOING ON
     var x =  d3.scaleTime()
               .domain([
-              d3.min(data, function(d) { return d.year.Date; }),
-              d3.max(data, function(d) { return d.year.Date; })
+              d3.min(data, function(d) { return d.year; }),
+              d3.max(data, function(d) { return d.year; })
+              // d3.min(data, function(d) { return d.year.Date; }),
+              // d3.max(data, function(d) { return d.year.Date; })
             ])
-            .range([margin.left, width - margin.right]);
+            .range([margin.left, width - margin.right - margin.left]);
 
     var y =  d3.scaleLinear()
                     .domain([0 , d3.max(data, function(d) { return d.running_total; })]) //[d3.min(data, function(d) { return d[1]; })
-                    .range([margin.bottom, height-margin.top]);
+                    .range([height-margin.top-margin.bottom, 1]);
 
     /* var x = d3.scale.linear()
                     .range([0, width]);
@@ -67,12 +71,16 @@
     // append svg element to the body of the page
     // set dimensions and position of the svg element
     var svg = d3.select("body").append("svg")
+                .attr("id", "svg1")
                 .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g");
-    //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .attr("height", height + margin.top + margin.bottom);
+    //.append("g")
+    //.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     // idk
 
+  svg.append("g")
+      .attr("id","container")
+  
     // Get the data
 	var pathToCsv = "q3.csv";		// path to csv
 	
@@ -85,13 +93,21 @@
       console.log(data); // you should see the data in your browser's developer tools console 
       
       /* Create bar plot using data from csv */
+      // #* FUCK THIS SHIT.
 
       // set the domains of X and Y scales based on data
-      x.domain();
-      y.domain();
+      x.domain([
+              d3.min(data, function(d) { return d.year; }),
+              d3.max(data, function(d) { return d.year; })
+            ]);
+      y.domain([0 , d3.max(data, function(d) { return d.running_total; })]);
 
       // Add bars to svg - create new elements based on your data
-			svg.selectAll("rect")
+
+			svg.select("g")
+          .append("g")
+          .attr("id","bars")
+          .selectAll("rect")
           .data(data)
           .enter()
           .append("rect")
@@ -99,32 +115,36 @@
             return i * ((width - margin.left - margin.right) / data.length) + margin.left;
           })
           .attr("y", function(d) {
-            return height - margin.bottom;
+            return y(d.running_total) + margin.top;
           })
           .attr("width", (width - margin.left - margin.right) / data.length - barPadding)
           .attr("height", function(d) {
             // console.log('data',data)
             // console.log('d', d)
             // console.log(d.running_total)
-            console.log(y(d.running_total))
-            return y(d.running_total); #TODO FIGURE OUT WHAT THE HELL IS WRONG WITH ALL THE THIS BULLISHIT
+            // console.log('running_total', d.running_total)
+            // console.log('y scale: ', y(d.running_total))
+
+            return height - margin.bottom - margin.top - y(d.running_total);
           });
 
       // Add the X Axis
       var x_axis = d3.axisBottom(x).ticks(10); //.attr("id", "x_axis").ticks(10)?
       // how the fuck am I supposed to make the .attr?
       
-      svg.append("g")
+      svg.select("g")
+        .append("g")
 				.attr("class", "axis")
-				.attr("transform", "translate(0," + (height - margin.left) + ")")
+				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+        .attr("id",'x_axis')
 				.call(x_axis);
 
       // Add the text label for X Axis
       svg.append("text")
         .attr("id", "x_axis_label")
         .attr("text-anchor", "end")
-        .attr("x", width)
-        .attr("y", height - 6)
+        .attr("x", width/2)
+        .attr("y", height - margin.top + 24)
         .text("Year");
 
       // Add the Y Axis
@@ -133,19 +153,44 @@
                     .scale(y)
                     .ticks(10); */
       
-      svg.append("g")
+      svg.select("g")
+        .append("g")
 				.attr("class", "axis")
-				.attr("transform", "translate(" + margin.bottom + ",0)")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y_axis')
 				.call(y_axis);
       
       // Add the text label for Y axis
       svg.append("text")
         .attr("id", "y_axis_label")
         .attr("text-anchor", "end")
-        .attr("y", 6)
+        .attr("y", 0)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Running Total");
+    
+      // Add HTML title tag
+
+
+      // Add d3 plot title
+      svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top)
+        .attr("id",'title')
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Running Total of TMDb Movies by Year");
+
+
+
+      // Add GT username
+      svg.append("text")
+          .attr("id", "credit")
+          .attr("text-anchor", "end")
+          .attr("x", width-margin.right)
+          .attr("y", height - margin.top + 24)
+          .text("tjordan60");
 
     }).catch(function (error) {
       console.log(error);
