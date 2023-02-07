@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<!-- To view in browser: python3 -m http.server 8080 & -->
+<!-- Then visit http://0.0.0.0:8080/interactive.html in your browser -->
+<head>
+  <title>Games Rating: 2015 - 2019</title>
+  <style>
+    <!-- define CSS rules -->
+  </style>
+</head>
+
+<body>
+  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+  <script type="text/javascript" src="../lib/d3-dsv.min.js"></script>
+
+  <!-- Example hiding an element -->
+  <!-- <g id="" style"display:none;" /> -->
+
+  <!-- Example of styling an element -->
+  <!-- svg_element.style()-->
+
+  <script>
+    // define the dimensions and margins for the line chart
+    // Use the Margin Convention referenced in the HW document to layout your graph
+
+
+    // define the dimensions and margins for the bar chart
+
+
+    // append svg element to the body of the page
+    // set dimensions and position of the svg element
+    let svg = d3
+      .select("body")
+      .append("svg")
+      .attr("id", "line_chart")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("id", "container")
+      .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+    // Fetch the data
+	var pathToCsv = "";
+
+
+    d3.dsv(",", pathToCsv, function (d) {
+      return {
+        // format data attributes if required
+      }
+    }).then(function (data) {
+      console.log(data); // you should see the data in your browser's developer tools console
+
+      /* Create bar plot using data from csv */
+
+
+
+
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+
+  </script>
+
+</body>
