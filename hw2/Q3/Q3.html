@@ -3,8 +3,17 @@
 <head>
   <title>Line Charts</title>
   <meta charset="utf-8">
-
+  <style>
+    /* CSS */
+    .stupid_shit_lines{
+      stroke: red;
+      fill: none;
+      }
+    
+  </style>
   <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+
+
 </head>
 
 <body>
@@ -18,8 +27,8 @@
     // basing of hint in class chat: https://datawanderings.com/2019/11/01/tutorial-making-an-interactive-line-chart-in-d3-js-v-5/
 
     //-----------------------------DATA-----------------------------//
-    const timeConv = d3.timeParse("%Y-%m-%d");
-    const dataset = d3.csv("boardgame_ratings.csv");
+    var timeConv = d3.timeParse("%Y-%m-%d");
+    var dataset = d3.csv("boardgame_ratings.csv");
     dataset.then(function(data) {
         var slices = data.columns.slice(1).map(function(id) {
             return {
@@ -27,48 +36,91 @@
                 values: data.map(function(d){
                     return {
                         date: timeConv(d.date),
-                        measurement: +d[id]
+                        Catan: parseInt(+d['Catan=count']),
+                        Dominion: parseInt(+d['Dominion=count']),
+                        Codenames: parseInt(+d['Codenames=count']),
+                        "Terraforming Mars": parseInt(+d['Terraforming Mars=count']),
+                        Gloomhaven: parseInt(+d['Gloomhaven=count']),
+                        'Magic: The Gathering': parseInt(+d['Magic: The Gathering=count']),
+                        Dixit: parseInt(+d['Dixit=count']),
+                        Monopoly: parseInt(+d['Monopoly=count']),
                     };
                 })
             };
         });
+    
+    console.log(data)
+    
+
+    // // Look at me having to learn java to get this shit done :(
+    // var data = dataZ.map(
+    //   function(d) { return {        
+    //     // values: {
+    //   date: d.date,
+    //   Catan: parseInt(+d['Catan=count']),
+    //   Dominion: parseInt(+d['Dominion=count']),
+    //   Codenames: parseInt(+d['Codenames=count']),
+    //   "Terraforming Mars": parseInt(+d['Terraforming Mars=count']),
+    //   Gloomhaven: parseInt(+d['Gloomhaven=count']),
+    //   'Magic: The Gathering': parseInt(+d['Magic: The Gathering=count']),
+    //   Dixit: parseInt(+d['Dixit=count']),
+    //   Monopoly: parseInt(+d['Monopoly=count']),
+    //     // }
+    //   }});
+    
+    // console.log(data)
+
+    // dataset.then(function(data) {
 
     //----------------------------SCALES----------------------------//
-    const xScale = d3.scaleTime().range([0,width]);
-    const yScale = d3.scaleLinear().rangeRound([height, 0]);
+    var xScale = d3.scaleTime().range([margin.left, width - margin.right - margin.left]);
+    var yScale = d3.scaleLinear().rangeRound([height-margin.top-margin.bottom, 0]);
     xScale.domain(d3.extent(data, function(d){
         return timeConv(d.date)}));
 
     yScale.domain([(0), d3.max(slices, function(c) {
         return d3.max(c.values, function(d) {
-            return d.measurement + 4; });
+            return d.measurement + 4000; });
             })
         ]);
 
     //-----------------------------AXES-----------------------------//
-    const yaxis = d3.axisLeft()
-        .ticks((slices[0].values).length)
+    var y_axis = d3.axisLeft()
+        .ticks(10)
         .scale(yScale);
 
-    const xaxis = d3.axisBottom()
-        .ticks(d3.timeDay.every(1))
-        .tickFormat(d3.timeFormat('%b %d'))
+    var x_axis = d3.axisBottom()
+        .ticks(15)
+        .tickFormat(d3.timeFormat('%b %y'))
         .scale(xScale);
 
     //----------------------------LINES-----------------------------//
-    const line = d3.line()
-        .x(function(d) { return xScale(d.date); })
-        .y(function(d) { return yScale(d.measurement); });
+    var line = d3.line()
+        .x(function(d) { return xScale(d.date) + margin.left; })
+        .y(function(d) { return yScale(d.measurement) + margin.top; });
 
     let id = 0;
-    const ids = function () {
-        return "line-"+id++;
-      }  
+    var ids = function () {
+        return +id++;
+      }
+    // console.log(id) #* fucking hell
+    // ids()
+    // console.log(id)
 
 
     //----------------------------COLORS-----------------------------//
     var colorArray = [d3.schemeCategory10, d3.schemeAccent];
     var colorScheme = d3.scaleOrdinal(colorArray[0]);
+    
+    // #* FUCK D3, this is a waste of my time. 
+    // for(i = 0; i < colorArray[0].length; i++){
+    //   var circleDict = {};
+    //   circleDict.cx = (i * 15) / 0.2;
+    //   circleDict.cy = 15;
+    //   circleDict.r = 15;
+    //   circleDict.color = colorScheme(i);
+    //   circleArray.push(circleDict);
+    // }
     
     //-------------------------2. DRAWING---------------------------//
     var svg_a = d3.select("body").append("svg")
@@ -79,30 +131,51 @@
       svg_a.append("g")
         .attr("id","plot-a")
     //-----------------------------AXES-----------------------------//
-    svg_a.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xaxis);
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+        .attr("id",'x_axis')
+				.call(x_axis);
 
-    svg_a.append("g")
-        .attr("class", "axis")
-        .call(yaxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
+      // Add the text label for X Axis
+      svg_a.append("text")
+        .attr("id", "x_axis_label")
+        .attr("text-anchor", "end")
+        .attr("x", width/2)
+        .attr("y", height - margin.top + 24)
+        .text("Month");
+
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y-axis-a')
+				.call(y_axis);
+
+      svg_a.append("text")
+        .attr("id", "y-axis-a")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2+88)
         .attr("dy", ".75em")
-        .attr("y", 6)
-        .style("text-anchor", "end")
-        .text("Frequency");
+        .attr("transform", "rotate(-90)")
+        .text("Num of Ratings");
 
     //----------------------------LINES-----------------------------//
-    const lines = svg_a.selectAll("lines")
+    var lines = svg_a.selectAll("lines")
         .data(slices)
         .enter()
-        .append("g");
+        .append("g")
+        .attr("class", "stupid_shit_lines")
+        .style("fill", "none")
+        .style("stroke-width", "1.5px")
+        .style("stroke", function(d) { return d.color = colorScheme(ids())});
 
     lines.append("path")
-        .attr("class", ids)
-        .attr("d", function(d) { return line(d.values); });
+        // .attr("class", ids)
+        .attr("d", function(d) { return line(d.values); 
+        
+        });
 
     lines.append("text")
         .attr("class","series_label")
@@ -114,19 +187,19 @@
                 return "translate(" + (xScale(d.value.date) + 10)  
                 + "," + (yScale(d.value.measurement) + 5 )+ ")"; })
         .attr("x", 5)
-        .text(function(d) { return ("Series ") + d.id; });
+        .text(function(d) { return d.id; });
 
     //---------------------------POINTS-----------------------------// 
-    lines.selectAll("points")
-        .data(function(d) {return d.values})
-        .enter()
-        .append("circle")
-        .attr("cx", function(d) { return xScale(d.date); })      
-        .attr("cy", function(d) { return yScale(d.measurement); })    
-        .attr("r", 1)
-        .attr("class","point")
-        .style("opacity", 1);
-
+    // lines.selectAll("points")
+    //     .data(function(d) {return d.values})
+    //     .enter()
+    //     .append("circle")
+    //     .attr("cx", function(d) { return xScale(d.date); })      
+    //     .attr("cy", function(d) { return yScale(d.measurement); })    
+    //     .attr("r", 1)
+    //     .attr("class","point")
+    //     .style("opacity", 1);
+        // })
     }); // idk, wtf
     </script>
   <div id='signature'>tjordan60</div>

@@ -105,9 +105,22 @@
         monopoly_count: parseInt(+d['Monopoly=count']),
         monopoly_rank: parseInt(+d['Monopoly=rank']),
       }
-    }).then(function (data) {
-      console.log(data);
+    }).then(function (dataZ) {
+      console.log(dataZ);
       // Add shit here.
+
+      // Look at me having to learn java to get this shit done :(
+        var data = dataZ.map(function(d) { return {        
+          date: formatTime(d.date),
+          Catan: parseInt(+d['Catan=count']),
+          Dominion: parseInt(+d['Dominion=count']),
+          Codenames: parseInt(+d['Codenames=count']),
+          "Terraforming Mars": parseInt(+d['Terraforming Mars=count']),
+          Gloomhaven: parseInt(+d['Gloomhaven=count']),
+          'Magic: The Gathering': parseInt(+d['Magic: The Gathering=count']),
+          Dixit: parseInt(+d['Dixit=count']),
+          Monopoly: parseInt(+d['Monopoly=count']),
+          }});
 
       // fist plot
       var svg_a = d3.select("body").append("svg")
