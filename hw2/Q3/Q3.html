@@ -267,6 +267,455 @@
         .style("text-decoration", "underline")  
         .text("Number of Ratings 2016-2020");
 
+
+
+    //-----------------------------------------------------------------//
+    //---------------------------{Part B}-----------------------------//
+    //---------------------------------------------------------------//
+    
+    //----------------------------SCALES----------------------------//
+    var xScale = d3.scaleTime().range([margin.left, width - margin.right - margin.left]);
+    var yScale = d3.scaleLinear().rangeRound([height-margin.top-margin.bottom, 0]);
+    xScale.domain(d3.extent(data, function(d){
+        return timeConv(d.date)}));
+
+    yScale.domain([(0), d3.max(slices, function(c) {
+        return d3.max(c.values, function(d) {
+            return d.measurement; });
+            })
+        ]);
+
+    //-----------------------------AXES-----------------------------//
+    var y_axis = d3.axisLeft()
+        .ticks(10)
+        .scale(yScale);
+
+    var x_axis = d3.axisBottom()
+        .ticks(15)
+        .tickFormat(d3.timeFormat('%b %y'))
+        .scale(xScale);
+
+    //----------------------------LINES-----------------------------//
+    var line = d3.line()
+        .x(function(d) { return xScale(d.date) + margin.left; })
+        .y(function(d) { return yScale(d.measurement) + margin.top; });
+
+    id = 0;
+    var ids = function () {
+        return +id++;
+      }
+    // console.log(id) #* fucking hell
+    // ids()
+    // console.log(id)
+
+
+    //----------------------------COLORS-----------------------------//
+    var colorArray = [d3.schemeCategory10, d3.schemeAccent];
+    var colorScheme = d3.scaleOrdinal(colorArray[0]);
+    
+    // #* FUCK D3, this is a waste of my time. 
+    // for(i = 0; i < colorArray[0].length; i++){
+    //   var circleDict = {};
+    //   circleDict.cx = (i * 15) / 0.2;
+    //   circleDict.cy = 15;
+    //   circleDict.r = 15;
+    //   circleDict.color = colorScheme(i);
+    //   circleArray.push(circleDict);
+    // }
+    
+    //-------------------------2. DRAWING---------------------------//
+    var svg_a = d3.select("body").append("svg")
+          .attr("id", "svg-b")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom);
+        
+      svg_a.append("g")
+        .attr("id","plot-b")
+    //-----------------------------AXES-----------------------------//
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+        .attr("id",'x-axis-b')
+				.call(x_axis)
+        .append("text")
+        .attr("id", "x_axis_label")
+        .attr("text-anchor", "end")
+        .attr("x", width/2)
+        .attr("y", height - margin.top + 24)
+        .text("Month");
+
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y-axis-b')
+				.call(y_axis)
+        .append("text")
+        .attr("id", "y-axis-b")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2+88)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Num of Ratings");
+
+
+    //----------------------------LINES-----------------------------//
+    
+    var lines = svg_a.select("g")
+        .append("g")
+        .attr("id",'lines-b')
+        .selectAll("lines")
+        .data(slices.filter((x)=>{return x.id.endsWith('=count')}))
+        .enter()
+        // .select("g")
+        .append("g")
+        .attr("id",'lines-b')
+        .attr("class", "stupid_shit_lines")
+        .style("fill", "none")
+        .style("stroke-width", "1.5px")
+        .style("stroke", function(d) { return d.color = colorScheme(ids())});
+
+    lines.append("path")
+        // .attr("class", ids)
+        .attr("d", function(d) { return line(d.values); 
+        
+        });
+
+    lines.append("text")
+        .attr("class","series_label")
+        .datum(function(d) {
+            return {
+                id: d.id,
+                value: d.values[d.values.length - 1]}; })
+        .attr("transform", function(d) {
+                return "translate(" + (xScale(d.value.date) + 40)  
+                + "," + (yScale(d.value.measurement) + 25 )+ ")"; })
+        .attr("x", 5)
+        .text(((d) => { return d.id.substring(0, d.id.length - 6) }))
+        .style("stroke-width", "0.5px")
+        .style("font", "6px times"); 
+        // .text(function(d) { return d.id.substring(0, d.id.length - 6) }); // what the fuck javascript. length? and not length() AHH!
+    //---------------------------POINTS-----------------------------// 
+    // lines.selectAll("points")
+    //     .data(function(d) {return d.values})
+    //     .enter()
+    //     .append("circle")
+    //     .attr("cx", function(d) { return xScale(d.date); })      
+    //     .attr("cy", function(d) { return yScale(d.measurement); })    
+    //     .attr("r", 1)
+    //     .attr("class","point")
+    //     .style("opacity", 1);
+        // })
+
+    //---------------------------Title-----------------------------//
+    svg_a.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top)
+        .attr("id",'title-b')
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Number of Ratings 2016-2020 with Rankings");
+    
+
+    //-----------------------------------------------------------------//
+    //---------------------------{Part C1}----------------------------//
+    //---------------------------------------------------------------//
+    
+    //----------------------------SCALES----------------------------//
+    var xScale = d3.scaleTime().range([margin.left, width - margin.right - margin.left]);
+    var yScale = d3.scaleSqrt().rangeRound([height-margin.top-margin.bottom, 0]);
+    xScale.domain(d3.extent(data, function(d){
+        return timeConv(d.date)}));
+
+    yScale.domain([(0), d3.max(slices, function(c) {
+        return d3.max(c.values, function(d) {
+            return d.measurement; });
+            })
+        ]);
+
+    //-----------------------------AXES-----------------------------//
+    var y_axis = d3.axisLeft()
+        .ticks(10)
+        .scale(yScale);
+
+    var x_axis = d3.axisBottom()
+        .ticks(15)
+        .tickFormat(d3.timeFormat('%b %y'))
+        .scale(xScale);
+
+    //----------------------------LINES-----------------------------//
+    var line = d3.line()
+        .x(function(d) { return xScale(d.date) + margin.left; })
+        .y(function(d) { return yScale(d.measurement) + margin.top; });
+
+    id = 0;
+    var ids = function () {
+        return +id++;
+      }
+    // console.log(id) #* fucking hell
+    // ids()
+    // console.log(id)
+
+
+    //----------------------------COLORS-----------------------------//
+    var colorArray = [d3.schemeCategory10, d3.schemeAccent];
+    var colorScheme = d3.scaleOrdinal(colorArray[0]);
+    
+    // #* FUCK D3, this is a waste of my time. 
+    // for(i = 0; i < colorArray[0].length; i++){
+    //   var circleDict = {};
+    //   circleDict.cx = (i * 15) / 0.2;
+    //   circleDict.cy = 15;
+    //   circleDict.r = 15;
+    //   circleDict.color = colorScheme(i);
+    //   circleArray.push(circleDict);
+    // }
+    
+    //-------------------------2. DRAWING---------------------------//
+    var svg_a = d3.select("body").append("svg")
+          .attr("id", "svg-c-1")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom);
+        
+      svg_a.append("g")
+        .attr("id","plot-c-1")
+    //-----------------------------AXES-----------------------------//
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+        .attr("id",'x-axis-c-1')
+				.call(x_axis)
+        .append("text")
+        .attr("id", "x_axis_label")
+        .attr("text-anchor", "end")
+        .attr("x", width/2)
+        .attr("y", height - margin.top + 24)
+        .text("Month");
+
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y-axis-c-1')
+				.call(y_axis)
+        .append("text")
+        .attr("id", "y-axis-c-1")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2+88)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Num of Ratings");
+
+
+    //----------------------------LINES-----------------------------//
+    
+    var lines = svg_a.select("g")
+        .append("g")
+        .attr("id",'lines-c-1')
+        .selectAll("lines")
+        .data(slices.filter((x)=>{return x.id.endsWith('=count')}))
+        .enter()
+        // .select("g")
+        .append("g")
+        .attr("id",'lines-c-1')
+        .attr("class", "stupid_shit_lines")
+        .style("fill", "none")
+        .style("stroke-width", "1.5px")
+        .style("stroke", function(d) { return d.color = colorScheme(ids())});
+
+    lines.append("path")
+        // .attr("class", ids)
+        .attr("d", function(d) { return line(d.values); 
+        
+        });
+
+    lines.append("text")
+        .attr("class","series_label")
+        .datum(function(d) {
+            return {
+                id: d.id,
+                value: d.values[d.values.length - 1]}; })
+        .attr("transform", function(d) {
+                return "translate(" + (xScale(d.value.date) + 40)  
+                + "," + (yScale(d.value.measurement) + 25 )+ ")"; })
+        .attr("x", 5)
+        .text(((d) => { return d.id.substring(0, d.id.length - 6) }))
+        .style("stroke-width", "0.5px")
+        .style("font", "6px times"); 
+        // .text(function(d) { return d.id.substring(0, d.id.length - 6) }); // what the fuck javascript. length? and not length() AHH!
+    //---------------------------POINTS-----------------------------// 
+    // lines.selectAll("points")
+    //     .data(function(d) {return d.values})
+    //     .enter()
+    //     .append("circle")
+    //     .attr("cx", function(d) { return xScale(d.date); })      
+    //     .attr("cy", function(d) { return yScale(d.measurement); })    
+    //     .attr("r", 1)
+    //     .attr("class","point")
+    //     .style("opacity", 1);
+        // })
+
+    //---------------------------Title-----------------------------//
+    svg_a.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top)
+        .attr("id",'title-c-1')
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Number of Ratings 2016-2020 with Rankings");
+    
+    //-----------------------------------------------------------------//
+    //---------------------------{Part C2}----------------------------//
+    //---------------------------------------------------------------//
+    
+    //----------------------------SCALES----------------------------//
+    var xScale = d3.scaleTime().range([margin.left, width - margin.right - margin.left]);
+    var yScale = d3.scaleLog().rangeRound([height-margin.top-margin.bottom, 0]);
+    xScale.domain(d3.extent(data, function(d){
+        return timeConv(d.date)}));
+
+    yScale.domain([(0), d3.max(slices, function(c) {
+        return d3.max(c.values, function(d) {
+            return d.measurement; });
+            })
+        ]);
+
+    //-----------------------------AXES-----------------------------//
+    var y_axis = d3.axisLeft()
+        .ticks(10)
+        .scale(yScale);
+
+    var x_axis = d3.axisBottom()
+        .ticks(15)
+        .tickFormat(d3.timeFormat('%b %y'))
+        .scale(xScale);
+
+    //----------------------------LINES-----------------------------//
+    var line = d3.line()
+        .x(function(d) { return xScale(d.date) + margin.left; })
+        .y(function(d) { return yScale(d.measurement) + margin.top; });
+
+    id = 0;
+    var ids = function () {
+        return +id++;
+      }
+    // console.log(id) #* fucking hell
+    // ids()
+    // console.log(id)
+
+
+    //----------------------------COLORS-----------------------------//
+    var colorArray = [d3.schemeCategory10, d3.schemeAccent];
+    var colorScheme = d3.scaleOrdinal(colorArray[0]);
+    
+    // #* FUCK D3, this is a waste of my time. 
+    // for(i = 0; i < colorArray[0].length; i++){
+    //   var circleDict = {};
+    //   circleDict.cx = (i * 15) / 0.2;
+    //   circleDict.cy = 15;
+    //   circleDict.r = 15;
+    //   circleDict.color = colorScheme(i);
+    //   circleArray.push(circleDict);
+    // }
+    
+    //-------------------------2. DRAWING---------------------------//
+    var svg_a = d3.select("body").append("svg")
+          .attr("id", "svg-c-2")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom);
+        
+      svg_a.append("g")
+        .attr("id","plot-c-2")
+    //-----------------------------AXES-----------------------------//
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+        .attr("id",'x-axis-c-2')
+				.call(x_axis)
+        .append("text")
+        .attr("id", "x_axis_label")
+        .attr("text-anchor", "end")
+        .attr("x", width/2)
+        .attr("y", height - margin.top + 24)
+        .text("Month");
+
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y-axis-c-2')
+				.call(y_axis)
+        .append("text")
+        .attr("id", "y-axis-c-2")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2+88)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Num of Ratings");
+
+
+    //----------------------------LINES-----------------------------//
+    
+    var lines = svg_a.select("g")
+        .append("g")
+        .attr("id",'lines-c-2')
+        .selectAll("lines")
+        .data(slices.filter((x)=>{return x.id.endsWith('=count')}))
+        .enter()
+        // .select("g")
+        .append("g")
+        .attr("id",'lines-c-2')
+        .attr("class", "stupid_shit_lines")
+        .style("fill", "none")
+        .style("stroke-width", "1.5px")
+        .style("stroke", function(d) { return d.color = colorScheme(ids())});
+
+    lines.append("path")
+        // .attr("class", ids)
+        .attr("d", function(d) { return line(d.values); 
+        
+        });
+
+    lines.append("text")
+        .attr("class","series_label")
+        .datum(function(d) {
+            return {
+                id: d.id,
+                value: d.values[d.values.length - 1]}; })
+        .attr("transform", function(d) {
+                return "translate(" + (xScale(d.value.date) + 40)  
+                + "," + (yScale(d.value.measurement) + 25 )+ ")"; })
+        .attr("x", 5)
+        .text(((d) => { return d.id.substring(0, d.id.length - 6) }))
+        .style("stroke-width", "0.5px")
+        .style("font", "6px times"); 
+        // .text(function(d) { return d.id.substring(0, d.id.length - 6) }); // what the fuck javascript. length? and not length() AHH!
+    //---------------------------POINTS-----------------------------// 
+    // lines.selectAll("points")
+    //     .data(function(d) {return d.values})
+    //     .enter()
+    //     .append("circle")
+    //     .attr("cx", function(d) { return xScale(d.date); })      
+    //     .attr("cy", function(d) { return yScale(d.measurement); })    
+    //     .attr("r", 1)
+    //     .attr("class","point")
+    //     .style("opacity", 1);
+        // })
+
+    //---------------------------Title-----------------------------//
+    svg_a.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top)
+        .attr("id",'title-c-2')
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Number of Ratings 2016-2020 with Rankings");
     }); // idk, wtf
     </script>
   <div id='signature'>tjordan60</div>
