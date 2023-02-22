@@ -8,5 +8,118 @@
 </head>
 
 <body>
-  <div id='signature'>gburdell3</div>
+  
+  <script>
+    var margin = ({top: 20, right: 30, bottom: 30, left: 40});
+    var width = 960 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
+    
+    // define function to parse time in years format
+    var formatTime = d3.timeParse("%Y-%m-%d");
+    
+    // // The number of data points
+    // var n = 46
+
+    // // 5. X scale will use the index of our data
+    // var xScale = d3.scaleLinear()
+    //     .domain([0, n-1]) // input
+    //     .range([0, width]); // output
+
+    // // 6. Y scale will use the randomly generate number 
+    // var yScale = d3.scaleLinear()
+    //     .domain([0, 1]) // input 
+    //     .range([height, 0]); // output 
+
+    // // 7. d3's line generator
+    // var line = d3.line()
+    //     .x(function(d, i) { return xScale(i); }) // set the x values for the line generator
+    //     .y(function(d) { return yScale(d.y); }) // set the y values for the line generator 
+    //     .curve(d3.curveMonotoneX) // apply smoothing to the line
+
+    d3.dsv(",", "boardgame_ratings.csv", function(d) {
+      return {
+        date: formatTime(d.date),
+        catan_count: parseInt(+d['Catan=count']),
+        catan_rank: parseInt(+d['Catan=rank']),
+        dominion_count: parseInt(+d['Dominion=count']),
+        dominion_rank: parseInt(+d['Dominion=rank']),
+        codenames_count: parseInt(+d['Codenames=count']),
+        codenames_rank: parseInt(+d['Codenames=rank']),
+        terra_count: parseInt(+d['Terraforming Mars=count']),
+        terra_rank: parseInt(+d['Terraforming Mars=rank']),
+        gloomhaven_count: parseInt(+d['Gloomhaven=count']),
+        gloomhaven_rank: parseInt(+d['Gloomhaven=rank']),
+        magic_count: parseInt(+d['Magic: The Gathering=count']),
+        magic_rank: parseInt(+d['Magic: The Gathering=rank']),
+        dixit_count: parseInt(+d['Dixit=count']),
+        dixit_rank: parseInt(+d['Dixit=rank']),
+        monopoly_count: parseInt(+d['Monopoly=count']),
+        monopoly_rank: parseInt(+d['Monopoly=rank']),
+      }
+    }).then(function (data) {
+      console.log(data);
+      // Add shit here.
+
+      // fist plot
+      var svg_a = d3.select("body").append("svg")
+          .attr("id", "svg-a")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom);
+        
+      svg_a.append("g")
+        .attr("id","plot-a")
+      
+      // colors!
+      var colorArray = [d3.schemeCategory10, d3.schemeAccent];
+      var colorScheme = d3.scaleOrdinal(colorArray[0]);
+
+      // x scale
+      var x = d3.scaleTime()
+                .range([margin.left, width])
+                .domain([])
+
+      // min and max of counts
+      var min_count = d3.min(data, function(d){
+          return Math.min(d.catan_count, d.dominion_count, d.codenames_count, d.terra_count, d.gloomhaven_count, d.magic_count, d.dixit_count, d.monopoly_count);
+      });
+      console.log('min_count: ', min_count);
+
+      var max_count = d3.max(data, function(d){
+          return Math.max(d.catan_count, d.dominion_count, d.codenames_count, d.terra_count, d.gloomhaven_count, d.magic_count, d.dixit_count, d.monopoly_count);
+      });
+      console.log('max_count: ', max_count);
+
+
+      // y scale
+      var y = d3.scaleLinear()
+                .range([height-margin.top-margin.bottom, 0])
+                .domain([min_count, max_count])
+
+      // x axis
+      
+
+      // y axis
+      var y_axis = d3.axisLeft(y).ticks(10);
+
+      svg_a.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y-axis-a')
+				.call(y_axis);
+
+      svg_a.append("text")
+        .attr("id", "y-axis-a")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2+88)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Num of Ratings");
+
+    }).catch(function (error) {
+      console.log(error);
+    });
+    
+  </script>
+  <div id='signature'>tjordan60</div>
 </body>

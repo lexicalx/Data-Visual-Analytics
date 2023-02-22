@@ -15,10 +15,27 @@ circle {
   stroke-width: 1.5px;
 }
 
+/* fixed_circle {
+  fill: #e31010;
+  stroke: #fff;
+  stroke: black;
+  stroke-width: 1.5px;
+} */
+
 text {
   fill: #000;
   font: 10px sans-serif;
+	font-weight: bold;
   pointer-events: none;
+}
+
+.solid{
+    stroke:solid;
+		fill:none;
+}
+.dashed{
+    stroke-dasharray: 5,5;
+		fill:none;
 }
 
 </style>
@@ -65,6 +82,14 @@ d3.dsv(",", "board_games.csv", function(d) {
       .attr("width", width)
       .attr("height", height);
 
+	// #* Add GT username
+	svg.append("text")
+		.attr("id", "credit")
+		.attr("text-anchor", "end")
+		.attr("x", width)
+		.attr("y", 12)
+		.text("tjordan60");
+
   // add the links
   var path = svg.append("g")
       .selectAll("path")
@@ -78,6 +103,7 @@ d3.dsv(",", "board_games.csv", function(d) {
       .data(force.nodes())
       .enter().append("g")
       .attr("class", "node")
+			.on("dblclick",dblClick)
       .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
@@ -85,10 +111,104 @@ d3.dsv(",", "board_games.csv", function(d) {
 
   // add the nodes
   node.append("circle")
+			// .on("dblclick",dblClick) #* not here
       .attr("id", function(d){
-         return (d.name.replace(/\s+/g,'').toLowerCase());
+          return (d.name.replace(/\s+/g,'').toLowerCase());
       })
-      .attr("r", 5);
+			// from assignment: https://stackoverflow.com/questions/43906686/d3-node-radius-depends-on-number-of-links-weight-property
+			// idk what is happening
+			.attr("r", function(d) {      
+				d.weight = path.filter(function(l) {
+					return l.source.index == d.index || l.target.index == d.index
+				}).size();      
+			var minRadius = 5;
+			return minRadius + (d.weight * 2);
+			})
+			.style("fill", function(d) {      
+				if(d.weight > 6){
+					return "#e34a33";
+				}
+				else if (d.weight > 3) {
+					return "#fdbb84";
+				}
+				else {
+					return "#fee8c8";
+				}
+				});
+      // .attr("r", 5);
+
+	// #* node labels
+	node.append("text")
+			.attr("dx",-5)
+			.attr("dy",-13)
+			.text(function(d) {
+				// console.log('d',d)
+				// console.log('d.source',d.name)
+				return d.name});
+
+	// edgeColor
+	function edgeColor(d){
+		if(d.value == 0){
+			return 'gray';
+		}
+		else {
+			return 'green';
+		}
+	};
+
+	// edgeStyle #* https://stackoverflow.com/questions/35188441/solid-and-dashed-line-in-d3-line-chart
+	function edgeStyle(d){
+		if(d.value == 0){
+			return 'solid';
+		}
+		else {
+			return 'dashed';
+		}
+	};
+
+	// edgeWidth
+	function edgeWidth(d){
+		if(d.value == 0){
+			return 5;
+		}
+		else {
+			return 1;
+		}
+	};
+
+	// radius scaling: https://stackoverflow.com/questions/54471028/how-can-i-calculate-the-degree-of-nodes-in-d3-v5
+	// jk lol, this is too complicated. Just using the example from the hw
+	// d3.selectAll(node)
+	// 	.each(function(d) {
+	// 		d.degree = 0;
+	// 	});
+
+	// // Calculate degree
+	// links.forEach(function(d){
+	// 		d.source.degree += 1;
+	// 		d.target.degree += 1;
+	// 	});
+
+	// // Accessor functions to get min & max
+	// var minDegree = d3.min(
+	// 	d3.values(nodes), function(d) {
+	// 		return d.degree; })
+
+	// var maxDegree = d3.max(
+	// 	d3.values(nodes), function(d) { 
+	// 		return d.degree; })
+
+	// // Create node scale based on degree
+	// var nodescale = d3.scaleSqrt()
+	// 	.domain( [minDegree, maxDegree] )
+	// 	.range( [3, 15] ); // Change this to your desired range
+
+	// // Add the node circles
+	// node.append("circle")
+	// 		.attr("r", function(d) {
+	// 			return nodescale(d.degree);
+	// 		})
+
 
   // add the curvy lines
   function tick() {
@@ -107,6 +227,29 @@ d3.dsv(",", "board_games.csv", function(d) {
       node.attr("transform", function(d) {
           return "translate(" + d.x + "," + d.y + ")"; 
       });
+			// jesus christ, I have no idea what is going on. This is just get stackoverflow inspirations and paste that around the code.
+			node.select("circle").style("fill", 
+			function(d) {
+			if (d.fixed == true) {
+          return "blue"
+      }
+      else {
+				if(d.weight > 6){
+					return "#e34a33";
+				}
+				else if (d.weight > 3) {
+					return "#fdbb84";
+				}
+				else {
+					return "#fee8c8";
+				}
+      }
+			});
+			
+			path.attr("class", edgeStyle);
+			path.style("stroke", edgeColor);
+			path.style("stroke-width", edgeWidth);
+
   };
 
   function dragstarted(d) {
@@ -118,6 +261,7 @@ d3.dsv(",", "board_games.csv", function(d) {
   function dragged(d) {
       d.fx = d3.event.x;
       d.fy = d3.event.y;
+			d.fixed = true;
   };
 
   function dragended(d) {
@@ -131,7 +275,17 @@ d3.dsv(",", "board_games.csv", function(d) {
           d.fy = null;
       }
   };
-  
+
+	function dblClick(d) {
+		// alert("node was double clicked")
+		// console.log(d)
+		d.fixed = false;
+		d.fx = null; // idk, but it works
+		d.fy = null;
+		// console.log(d) #* so much debugging for == and not =
+	};
+
+
 }).catch(function(error) {
   console.log(error);
 });
