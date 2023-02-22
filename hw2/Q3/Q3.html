@@ -31,27 +31,62 @@
     var dataset = d3.csv("boardgame_ratings.csv");
     dataset.then(function(data) {
         var slices = data.columns.slice(1).map(function(id) {
-            return {
+          // if (id.endsWith("=count")) {  
+          return {
+                // id: id.substring(0, id.length() - 6),
                 id: id,
                 values: data.map(function(d){
                     return {
                         date: timeConv(d.date),
-                        Catan: parseInt(+d['Catan=count']),
-                        Dominion: parseInt(+d['Dominion=count']),
-                        Codenames: parseInt(+d['Codenames=count']),
-                        "Terraforming Mars": parseInt(+d['Terraforming Mars=count']),
-                        Gloomhaven: parseInt(+d['Gloomhaven=count']),
-                        'Magic: The Gathering': parseInt(+d['Magic: The Gathering=count']),
-                        Dixit: parseInt(+d['Dixit=count']),
-                        Monopoly: parseInt(+d['Monopoly=count']),
+                        measurement: +d[id]
                     };
                 })
+              // }
             };
         });
     
     console.log(data)
+    console.log(slices)
     
-
+    // var timeConv = d3.timeParse("%Y-%m-%d");
+    // var dataset = d3.csv("boardgame_ratings.csv");
+    // dataset.then(function(data) {
+    //     var slices = data.columns.slice(1).map(function(id) {
+    //         return {
+    //             id: id,
+    //             values: data.map(function(d){
+    //                 return {
+    //                     date: timeConv(d.date),
+    //                     measurement: +d[id]
+    //                 };
+    //             })
+    //         };
+    //     });
+    
+    // console.log(data)
+    
+    // var timeConv = d3.timeParse("%Y-%m-%d");
+    // var dataset = d3.csv("boardgame_ratings.csv");
+    // dataset.then(function(data) {
+    //     var slices = data.columns.slice(1).map(function(id) {
+    //         return {
+    //             id: id,
+    //             values: data.map(function(d){
+    //                 return {
+    //                     date: timeConv(d.date),
+    //                     Catan: parseInt(+d['Catan=count']),
+    //                     Dominion: parseInt(+d['Dominion=count']),
+    //                     Codenames: parseInt(+d['Codenames=count']),
+    //                     "Terraforming Mars": parseInt(+d['Terraforming Mars=count']),
+    //                     Gloomhaven: parseInt(+d['Gloomhaven=count']),
+    //                     'Magic: The Gathering': parseInt(+d['Magic: The Gathering=count']),
+    //                     Dixit: parseInt(+d['Dixit=count']),
+    //                     Monopoly: parseInt(+d['Monopoly=count']),
+    //                 };
+    //             })
+    //         };
+    //     });
+    
     // // Look at me having to learn java to get this shit done :(
     // var data = dataZ.map(
     //   function(d) { return {        
@@ -80,7 +115,7 @@
 
     yScale.domain([(0), d3.max(slices, function(c) {
         return d3.max(c.values, function(d) {
-            return d.measurement + 4000; });
+            return d.measurement; });
             })
         ]);
 
@@ -135,25 +170,30 @@
         .append("g")
 				.attr("class", "axis")
 				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
-        .attr("id",'x_axis')
-				.call(x_axis);
-
-      // Add the text label for X Axis
-      svg_a.append("text")
+        .attr("id",'x-axis-a')
+				.call(x_axis)
+        .append("text")
         .attr("id", "x_axis_label")
         .attr("text-anchor", "end")
         .attr("x", width/2)
         .attr("y", height - margin.top + 24)
         .text("Month");
 
+      // Add the text label for X Axis
+      // svg_a.append("text")
+      //   .attr("id", "x_axis_label")
+      //   .attr("text-anchor", "end")
+      //   .attr("x", width/2)
+      //   .attr("y", height - margin.top + 24)
+      //   .text("Month");
+
       svg_a.select("g")
         .append("g")
 				.attr("class", "axis")
 				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
         .attr("id",'y-axis-a')
-				.call(y_axis);
-
-      svg_a.append("text")
+				.call(y_axis)
+        .append("text")
         .attr("id", "y-axis-a")
         .attr("text-anchor", "end")
         .attr("x", -height/2+88)
@@ -161,11 +201,25 @@
         .attr("transform", "rotate(-90)")
         .text("Num of Ratings");
 
+      // svg_a.append("text")
+      //   .attr("id", "y-axis-a")
+      //   .attr("text-anchor", "end")
+      //   .attr("x", -height/2+88)
+      //   .attr("dy", ".75em")
+      //   .attr("transform", "rotate(-90)")
+      //   .text("Num of Ratings");
+
     //----------------------------LINES-----------------------------//
-    var lines = svg_a.selectAll("lines")
-        .data(slices)
-        .enter()
+    
+    var lines = svg_a.select("g")
         .append("g")
+        .attr("id",'lines-a')
+        .selectAll("lines")
+        .data(slices.filter((x)=>{return x.id.endsWith('=count')}))
+        .enter()
+        // .select("g")
+        .append("g")
+        .attr("id",'lines-a')
         .attr("class", "stupid_shit_lines")
         .style("fill", "none")
         .style("stroke-width", "1.5px")
@@ -184,11 +238,13 @@
                 id: d.id,
                 value: d.values[d.values.length - 1]}; })
         .attr("transform", function(d) {
-                return "translate(" + (xScale(d.value.date) + 10)  
-                + "," + (yScale(d.value.measurement) + 5 )+ ")"; })
+                return "translate(" + (xScale(d.value.date) + 40)  
+                + "," + (yScale(d.value.measurement) + 25 )+ ")"; })
         .attr("x", 5)
-        .text(function(d) { return d.id; });
-
+        .text(((d) => { return d.id.substring(0, d.id.length - 6) }))
+        .style("stroke-width", "0.5px")
+        .style("font", "6px times"); 
+        // .text(function(d) { return d.id.substring(0, d.id.length - 6) }); // what the fuck javascript. length? and not length() AHH!
     //---------------------------POINTS-----------------------------// 
     // lines.selectAll("points")
     //     .data(function(d) {return d.values})
@@ -200,6 +256,17 @@
     //     .attr("class","point")
     //     .style("opacity", 1);
         // })
+
+    //---------------------------Title-----------------------------//
+    svg_a.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top)
+        .attr("id",'title-a')
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Number of Ratings 2016-2020");
+
     }); // idk, wtf
     </script>
   <div id='signature'>tjordan60</div>
