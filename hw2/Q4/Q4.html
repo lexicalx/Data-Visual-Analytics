@@ -6,6 +6,10 @@
   <title>Games Rating: 2015 - 2019</title>
   <style>
     /* <!-- define CSS rules --> */
+    .point {
+  stroke: none;
+  fill: #9c9c9c;
+  }
   </style>
 </head>
 
@@ -31,16 +35,16 @@
 
     // append svg element to the body of the page
     // set dimensions and position of the svg element
-    let svg = d3
-      .select("body")
-      .append("svg")
-      .attr("id", "line_chart")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("id", "container")
-      .attr("transform",
-        "translate(" + margin.left + "," + margin.top + ")");
+    // let svg = d3
+    //   .select("body")
+    //   .append("svg")
+    //   .attr("id", "line_chart")
+    //   .attr("width", width + margin.left + margin.right)
+    //   .attr("height", height + margin.top + margin.bottom)
+    //   .append("g")
+    //   .attr("id", "container")
+      // .attr("transform",
+      //   "translate(" + margin.left + "," + margin.top + ")");
 
     // Fetch the data
 	var pathToCsv = "average-rating.csv";
@@ -62,33 +66,74 @@
 
       /* Create bar plot using data from csv */
       // Do some javascript to get data in order.
-      var date_filtered_data = data.filter((d) => {return d.year >= 2015 && d.year <= 2019})
-      console.log('***')
-      console.log(date_filtered_data)
+      // var date_filtered_data = data.filter((d) => {return d.year >= 2015 && d.year <= 2019})
+      // console.log('***')
+      // console.log(date_filtered_data)
 
       var xyz = [2015,2016,2017,2018,2019].map((year) => {
         return data.filter((x) => {return x.year == year})
       }).map((d) => {
         var x = {
           year: d[0].year,
-          '0': 0, 
-          '1': 0,
-          '2': 0,
-          '3': 0,
-          '4': 0,
-          '5': 0,
-          '6': 0,
-          '7': 0,
-          '8': 0,
-          '9': 0
+          0: 0, 
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0,
+          6: 0,
+          7: 0,
+          8: 0,
+          9: 0
         }
         d.forEach((y) => {
-          x[String(y.avg_rat)]++
+          x[y.avg_rat]++
         })
         return x
       })
       console.log('***')
       console.log(xyz)
+
+      var zyx = xyz.map(function(id) {
+    // console.log('***')
+    // console.log('id', id)
+          return {
+                id: id.year,
+                values: [ {
+                        count: 0,
+                        measurement: id[0] },
+                         {
+                        count: 1,
+                        measurement: id[1] },
+                         {
+                        count: 2,
+                        measurement: id[2] },
+                         {
+                        count: 3,
+                        measurement: id[3] },
+                         {
+                        count: 4,
+                        measurement: id[4] },
+                         {
+                        count: 5,
+                        measurement: id[5] },
+                         {
+                        count: 6,
+                        measurement: id[6] },
+                         {
+                        count: 7,
+                        measurement: id[7] },
+                         {
+                        count: 8,
+                        measurement: id[8] },
+                         {
+                        count: 9,
+                        measurement: id[9] },
+                        ]
+                    };
+                })
+        console.log('*** zyx ***')
+        console.log(zyx)
 
       // var xyz = [2015,2016,2017,2018,2019].map((year) => {
       //   return data.filter((x) => {return x.year == year})
@@ -108,25 +153,227 @@
       //   }
       // })
       // console.log('***')
-      // console.log(xyz)
+      // console.log(xyz)    
 
-
-    
-
+      //----------------------------SCALES----------------------------//
       var xScale = d3.scaleLinear().range([margin.left, width - margin.right - margin.left]);
       var yScale = d3.scaleLinear().rangeRound([height-margin.top-margin.bottom, 0]);
-      xScale.domain([2015,2019]);
+      xScale.domain([0,9]);
       // #TODO: update after javascript 
-      yScale.domain([(0), d3.max(slices, function(c) {
-          return d3.max(c.values, function(d) {
-              return d.measurement; });
+      yScale.domain([(0), d3.max(xyz, function(c) {
+          return d3.max([c[0],c[1],c[2],c[3],c[4],c[5],c[6],c[7],c[8]]);
               })
           ]);
+      // console.log('xScale',xScale)
+      // console.log('yScale',yScale)
+
+      //-----------------------------AXES-----------------------------//
+      var y_axis = d3.axisLeft()
+          .ticks(10)
+          .scale(yScale);
+
+      var x_axis = d3.axisBottom()
+          .ticks(10)
+          .scale(xScale);
 
 
+      //----------------------------LINES-----------------------------//
+      var line = d3.line()
+          .x(function(d) { return xScale(d.count) + margin.left; })
+          .y(function(d) { return yScale(d.measurement) + margin.top; });
 
-    }).catch(function (error) {
-      console.log(error);
+      var id = 0;
+      var ids = function () {
+          return +id++;
+        }
+      // console.log(id) #* fucking hell
+      // ids()
+      // console.log(id)
+
+      //----------------------------COLORS-----------------------------//
+      var colorArray = [d3.schemeCategory10, d3.schemeAccent];
+      var colorScheme = d3.scaleOrdinal(colorArray[0]);
+    
+
+      //-------------------------2. DRAWING---------------------------//
+      var svg = d3.select("body").append("svg")
+          .attr("id", "svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom);
+        
+      svg.append("g")
+        .attr("id", "container")
+      
+      //-----------------------------AXES-----------------------------//
+      svg.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+        .attr("id",'x-axis-lines')
+				.call(x_axis);
+        // .append("text")
+        // .attr("id", "x_axis_label")
+        // .attr("text-anchor", "end")
+        // .attr("x", width/2)
+        // .attr("y", height - margin.top)
+        // .text("Rating"); // I don't know how this shit works, this hw is literarily a try everything till it works exercise of frustration.
+
+      svg.append("text")
+        .attr("id", "x-axis-label")
+        .attr("text-anchor", "end")
+        .attr("x", (width + margin.left + margin.right)/2 )
+        .attr("y", height - margin.top + 24)
+        .text("Rating");
+      
+      svg.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y-axis-lines')
+				.call(y_axis)
+      
+      svg.append("text")
+        .attr("id", "y-axis-label")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2+88)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Count");
+
+      //---------------------------Title-----------------------------//
+      svg.append("text")
+          .attr("x", (width / 2))             
+          .attr("y", margin.top)
+          .attr("id", "line_chart_title")
+          .attr("text-anchor", "middle")  
+          .style("font-size", "16px") 
+          .style("text-decoration", "underline")  
+          .text("Board games by Rating 2015-2019");
+      
+      //---------------------------Credits-----------------------------//
+      svg.append("text")
+          .attr("x", (width / 2))             
+          .attr("y", margin.top+42/2)
+          .attr("id", "credit")
+          .attr("text-anchor", "middle")  
+          .style("font-size", "16px") 
+          .style("text-decoration", "underline")  
+          .text("tjordan60");
+
+          //----------------------------LINES-----------------------------//
+    
+      var lines = svg.select("g")
+          .append("g")
+          .attr("id",'lines')
+          .selectAll("lines")
+          .data(zyx)
+          .enter()
+          // .select("g")
+          .append("g")
+          .attr("id",'lines')
+          // .attr("class", "stupid_shit_lines")
+          .style("fill", "none")
+          .style("stroke-width", "1.5px")
+          .style("stroke", function(d) { return d.color = colorScheme(ids())});
+
+      lines.append("path")
+          // .attr("class", ids)
+          .attr("d", function(d) { return line(d.values); 
+          
+          });
+
+      // lines.append("text")
+      //     .attr("class","series_label")
+      //     .datum(function(d) {
+      //         return {
+      //             id: d.id,
+      //             value: d.values[d.values.length - 1]}; })
+      //     .attr("transform", function(d) {
+      //             return "translate(" + (xScale(d.value.count) + 40)  
+      //             + "," + (yScale(d.value.measurement) + 25 )+ ")"; })
+      //     .attr("x", 5)
+      //     .text((d)  => {return d.id})
+      //     .style("stroke-width", "0.5px")
+      //     .style("font", "6px times"); 
+              
+
+    //---------------------------POINTS-----------------------------// 
+    // svg.append("g")
+    //     .attr("id","circle")
+    //     .selectAll("points")
+    //     .data(zyx)
+    //     .enter()
+    //     .append("g")
+    //     .attr("id","circle")
+    //     .append("circle")
+    //     // .attr("cx", function(d, i) {console.log('ass', d, 'd.values', d.values[i], 'd.values.count', d.values[i].count, 'xScale(d.values.count)', xScale(d.values[i].count)); return xScale(d.values[i].count) + margin.left; })      
+    //     .attr("cx", function(d, i) {console.log('i', i); return xScale(d.values[i].count) + margin.left; })      
+    //     // .attr("cy", function(d, i) {console.log('hats', d); return yScale(d.values.measurement) + margin.top; })    
+    //     .attr("cy", function(d, i) {return yScale(d.values[i].measurement) + margin.top; })    
+    //     .attr("r", 5)
+    //     .style("fill",function(d) { return d.color; });
+
+    // lines
+    //     .append("g")
+        
+    //     .data(function(d) {return d.values})
+    //     .enter()
+        
+        // .append("g")
+        // .attr("id","circle")
+        
+    
+    
+    // works but wrong DOM, fuck this stupid bull shit!
+    // lines.selectAll("points")
+    //     .append("g")
+    //     .attr("id","circle")
+    //     .data(function(d) {return d.values})
+    //     .enter()
+    //     .append("circle")
+    //     // .append("g")
+    //     // .attr("id","circle")
+    //     .attr("cx", function(d) { return xScale(d.count) + margin.left; })      
+    //     .attr("cy", function(d) { return yScale(d.measurement) + margin.top; })    
+    //     .attr("r", 5)
+    //     .style("fill","black");
+        // .style("fill", (d) => {console.log(d); return d.color;});
+        // .attr("class","point")
+        // .style("opacity", 50)
+        // .style("fill", );
+        
+
+      //---------------------------LEGEND-----------------------------// 
+      var legend_keys = [2015,2016,2017,2018,2019]
+
+      var lineLegend = svg.select("g")
+          .append("g")
+          .attr("id","legend")
+          .selectAll(".lineLegend")
+          .data(legend_keys)
+          .enter()
+          .append("g")
+          .attr("id","legend")
+          .attr("class","legend")
+          .append("g")
+          .attr("id","legend")
+          .attr("transform", function (d,i) {
+                  return "translate(" + (margin.left) + "," + (i*20)+")";
+              });
+
+      lineLegend.append("text").text(function (d) {return d;})
+          .attr("transform", "translate(790, 42)"); //align texts with boxes
+
+      lineLegend.append("circle")
+          .attr("fill", function(d,i) { return zyx[i].color}) //console.log(zyx[i]);
+          .attr("transform", "translate(770, 37)")
+          .attr("cx", 0)
+          .attr('cy', 0)
+          .attr('r', 5);
+
+    // #* what is this shit! it prevented my error logs :(
+    // }).catch(function (error) {
+    //   console.log(error);
     });
 
 
