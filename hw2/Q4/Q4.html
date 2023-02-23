@@ -29,6 +29,7 @@
 
 
     // define the dimensions and margins for the bar chart
+    // var margin = ({top: 0, right: 0, bottom: 0, left: 0});
     var margin = ({top: 20, right: 30, bottom: 30, left: 40});
     var width = 960 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
@@ -100,34 +101,34 @@
           return {
                 id: id.year,
                 values: [ {
-                        count: 0,
+                        rank: 0,
                         measurement: id[0] },
                          {
-                        count: 1,
+                        rank: 1,
                         measurement: id[1] },
                          {
-                        count: 2,
+                        rank: 2,
                         measurement: id[2] },
                          {
-                        count: 3,
+                        rank: 3,
                         measurement: id[3] },
                          {
-                        count: 4,
+                        rank: 4,
                         measurement: id[4] },
                          {
-                        count: 5,
+                        rank: 5,
                         measurement: id[5] },
                          {
-                        count: 6,
+                        rank: 6,
                         measurement: id[6] },
                          {
-                        count: 7,
+                        rank: 7,
                         measurement: id[7] },
                          {
-                        count: 8,
+                        rank: 8,
                         measurement: id[8] },
                          {
-                        count: 9,
+                        rank: 9,
                         measurement: id[9] },
                         ]
                     };
@@ -179,7 +180,7 @@
 
       //----------------------------LINES-----------------------------//
       var line = d3.line()
-          .x(function(d) { return xScale(d.count) + margin.left; })
+          .x(function(d) { return xScale(d.rank) + margin.left; })
           .y(function(d) { return yScale(d.measurement) + margin.top; });
 
       var id = 0;
@@ -196,14 +197,17 @@
     
 
       //-------------------------2. DRAWING---------------------------//
+
       var svg = d3.select("body").append("svg")
-          .attr("id", "svg")
+          .attr("id", "line_chart")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom);
         
       svg.append("g")
         .attr("id", "container")
       
+      // This just moves the entire svg.
+      svg.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
       //-----------------------------AXES-----------------------------//
       svg.select("g")
         .append("g")
@@ -221,6 +225,8 @@
       svg.append("text")
         .attr("id", "x-axis-label")
         .attr("text-anchor", "end")
+        .attr("x", (width + margin.left + margin.right)/2 )
+        .attr("y", height - margin.top + 24)
         .attr("x", (width + margin.left + margin.right)/2 )
         .attr("y", height - margin.top + 24)
         .text("Rating");
@@ -270,7 +276,7 @@
           .enter()
           // .select("g")
           .append("g")
-          .attr("id",'lines')
+          // .attr("id",'lines')
           // .attr("class", "stupid_shit_lines")
           .style("fill", "none")
           .style("stroke-width", "1.5px")
@@ -289,7 +295,7 @@
       //             id: d.id,
       //             value: d.values[d.values.length - 1]}; })
       //     .attr("transform", function(d) {
-      //             return "translate(" + (xScale(d.value.count) + 40)  
+      //             return "translate(" + (xScale(d.value.rank) + 40)  
       //             + "," + (yScale(d.value.measurement) + 25 )+ ")"; })
       //     .attr("x", 5)
       //     .text((d)  => {return d.id})
@@ -297,17 +303,78 @@
       //     .style("font", "6px times"); 
               
 
-    //---------------------------POINTS-----------------------------// 
+    //---------------------------POINTS-----------------------------//
+
+    // ALL I CAN SAY IS FUCK HAVING TO LEARN JAVASCRIPT WHEN PRETENDING THIS IS ABOUT D3 AND VISUALIZATION.
+    var circles = svg.select("g")
+                    .append("g")
+                    .attr("id","circles")
+                    .selectAll("circles") // GOD DAMN! THIS IS SO ANNOYING!
+
+      for (let i = 0; i < zyx.length; i++) { // FUCK YOU!
+      circles
+        .data(zyx[i].values)
+        .enter()
+        // .append("g")
+        .append("circle")
+        // .attr("id","circle")
+        .attr("cx", function(d) {console.log('d',d, 'd.count', d.rank); return xScale(d.rank) + margin.left; })      
+        .attr("cy", function(d) {console.log('d',d, 'd.measurement', d.measurement);return yScale(d.measurement) + margin.top; })
+        .attr("r", 5)
+
+        .style("fill",function(d) { return zyx[i].color; });
+      }
+
+      // Testing without the loop
+      // points still in 'wrong' spot! Fuck this auto-grading bullshit! with no help.
+      // i = 0
+      // svg.select("g")
+      //   .append("g")
+      //   .attr("id","circles")
+      //   .selectAll("circles")
+      //   .data(zyx[i].values)
+      //   .enter()
+      //   .append("circle")
+      //   // .attr("id","circle")
+      //   .attr("cx", function(d) {console.log('d',d, 'd.count', d.rank); return xScale(d.rank) + margin.left; })      
+      //   .attr("cy", function(d) {console.log('d',d, 'd.measurement', d.measurement);return yScale(d.measurement) + margin.top; })
+      //   .attr("r", 5)
+      //   .style("fill",function(d) { return zyx[i].color; });
+
+      //   i = 4
+      //   svg.select("g")
+      //   .append("g")
+      //   .attr("id","circles")
+      //   .selectAll("circles")
+      //   .data(zyx[i].values)
+      //   .enter()
+      //   .append("circle")
+      //   // .attr("id","circle")
+      //   .attr("cx", function(d) {console.log('d',d, 'd.count', d.rank); return xScale(d.rank) + margin.left; })      
+      //   .attr("cy", function(d) {console.log('d',d, 'd.measurement', d.measurement);return yScale(d.measurement) + margin.top; })
+      //   .attr("r", 5)
+      //   .style("fill",function(d) { return zyx[i].color; });
+    // circle.selectAll("circle")
+    //     .data(zyx[0].values)
+    //     .enter()
+    //     .append("g")
+    //     .attr("id","circle")
+    //     .append("circle")
+    //     .attr("cx", function(d) {console.log('d',d, 'd.rank', d.rank); return xScale(d.rank) + margin.left; })      
+    //     .attr("cy", function(d) {console.log('d',d, 'd.measurement', d.measurement);return yScale(d.measurement) + margin.top; })    
+    //     .attr("r", 5)
+    //     .style("fill",function(d) { return zyx[0].color; });
+
     // svg.append("g")
     //     .attr("id","circle")
-    //     .selectAll("points")
+    //     .selectAll("circle")
     //     .data(zyx)
     //     .enter()
     //     .append("g")
     //     .attr("id","circle")
     //     .append("circle")
-    //     // .attr("cx", function(d, i) {console.log('ass', d, 'd.values', d.values[i], 'd.values.count', d.values[i].count, 'xScale(d.values.count)', xScale(d.values[i].count)); return xScale(d.values[i].count) + margin.left; })      
-    //     .attr("cx", function(d, i) {console.log('i', i); return xScale(d.values[i].count) + margin.left; })      
+    //     // .attr("cx", function(d, i) {console.log('ass', d, 'd.values', d.values[i], 'd.values.rank', d.values[i].rank, 'xScale(d.values.rank)', xScale(d.values[i].rank)); return xScale(d.values[i].rank) + margin.left; })      
+    //     .attr("cx", function(d, i) {console.log('i', i); return xScale(d.values[i].rank) + margin.left; })      
     //     // .attr("cy", function(d, i) {console.log('hats', d); return yScale(d.values.measurement) + margin.top; })    
     //     .attr("cy", function(d, i) {return yScale(d.values[i].measurement) + margin.top; })    
     //     .attr("r", 5)
@@ -353,10 +420,10 @@
           .data(legend_keys)
           .enter()
           .append("g")
-          .attr("id","legend")
-          .attr("class","legend")
-          .append("g")
-          .attr("id","legend")
+          // .attr("id","legend")
+          // .attr("class","legend")
+          // .append("g")
+          // .attr("id","legend")
           .attr("transform", function (d,i) {
                   return "translate(" + (margin.left) + "," + (i*20)+")";
               });
@@ -371,9 +438,83 @@
           .attr('cy', 0)
           .attr('r', 5);
 
+    // Only do on mouse over event.
+
+    // Creating Div
+    d3.select("body").append("div")
+    .attr("id", "bar_chart_title")
+    .text("Top 5 Most Rated Games of {YEAR} with Rating {RATING}")
+
+    var svg_bar = d3.select("body")
+                    .append("svg")
+                    .attr("id", "bar_chart")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom);
+    
+    svg_bar.append("g")
+      .attr("id", "container_2")
+
+    // This just moves the entire svg.
+    svg_bar.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    //----------------------------SCALES----------------------------//
+    var xScale_bar = d3.scaleLinear()
+                        .range([margin.left, width - margin.right - margin.left])
+                        .domain([0,9]);
+    
+    var yScale_bar = d3.scaleLinear()
+                        .rangeRound([height-margin.top-margin.bottom, 0])
+                        .domain([0,5]);
+
+      //-----------------------------AXES-----------------------------//
+      var y_axis_bar = d3.axisLeft()
+          .ticks(5)
+          .scale(yScale_bar);
+
+      var x_axis_bar = d3.axisBottom()
+          .ticks(10)
+          .scale(xScale_bar);
+
+
+      svg_bar.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+        .attr("id",'x-axis-bars')
+				.call(x_axis_bar);
+
+      svg_bar.append("text")
+        .attr("id", "bar_x_axis_label")
+        .attr("text-anchor", "end")
+        .attr("x", (width + margin.left + margin.right)/2 )
+        .attr("y", height - margin.top + 24)
+        .attr("x", (width + margin.left + margin.right)/2 )
+        .attr("y", height - margin.top + 24)
+        .text("Games");
+      
+      svg_bar.select("g")
+        .append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+        .attr("id",'y-axis-bars')
+				.call(y_axis_bar)
+      
+      svg_bar.append("text")
+        .attr("id", "bar_x_axis_label")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2+88)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Number of Users");
+
+
+
+
+
     // #* what is this shit! it prevented my error logs :(
     // }).catch(function (error) {
     //   console.log(error);
+    
     });
 
 
