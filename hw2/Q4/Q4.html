@@ -5,7 +5,7 @@
 <head>
   <title>Games Rating: 2015 - 2019</title>
   <style>
-    <!-- define CSS rules -->
+    /* <!-- define CSS rules --> */
   </style>
 </head>
 
@@ -25,7 +25,9 @@
 
 
     // define the dimensions and margins for the bar chart
-
+    var margin = ({top: 20, right: 30, bottom: 30, left: 40});
+    var width = 960 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
 
     // append svg element to the body of the page
     // set dimensions and position of the svg element
@@ -41,18 +43,85 @@
         "translate(" + margin.left + "," + margin.top + ")");
 
     // Fetch the data
-	var pathToCsv = "";
+	var pathToCsv = "average-rating.csv";
 
 
     d3.dsv(",", pathToCsv, function (d) {
       return {
         // format data attributes if required
+        name: d.name,
+        year: parseInt(d.year),
+        avg_rat: Math.floor(parseInt(d.average_rating)),
+        usr_rat: parseInt(d.users_rated)
       }
     }).then(function (data) {
       console.log(data); // you should see the data in your browser's developer tools console
 
-      /* Create bar plot using data from csv */
+      // goal.
+      // {year: 2015, '0':12, '1':14,}
 
+      /* Create bar plot using data from csv */
+      // Do some javascript to get data in order.
+      var date_filtered_data = data.filter((d) => {return d.year >= 2015 && d.year <= 2019})
+      console.log('***')
+      console.log(date_filtered_data)
+
+      var xyz = [2015,2016,2017,2018,2019].map((year) => {
+        return data.filter((x) => {return x.year == year})
+      }).map((d) => {
+        var x = {
+          year: d[0].year,
+          '0': 0, 
+          '1': 0,
+          '2': 0,
+          '3': 0,
+          '4': 0,
+          '5': 0,
+          '6': 0,
+          '7': 0,
+          '8': 0,
+          '9': 0
+        }
+        d.forEach((y) => {
+          x[String(y.avg_rat)]++
+        })
+        return x
+      })
+      console.log('***')
+      console.log(xyz)
+
+      // var xyz = [2015,2016,2017,2018,2019].map((year) => {
+      //   return data.filter((x) => {return x.year == year})
+      // }).map((d) => {
+      //   return {
+      //     year: d[0].year,
+      //     '0': d.reduce((total, id) => {return id.avg_rat == 0 ? total+1:total}, 0), 
+      //     '1': d.reduce((total, id) => {return id.avg_rat == 1 ? total+1:total}, 0),
+      //     '2': d.reduce((total, id) => {return id.avg_rat == 2 ? total+1:total}, 0),
+      //     '3': d.reduce((total, id) => {return id.avg_rat == 3 ? total+1:total}, 0),
+      //     '4': d.reduce((total, id) => {return id.avg_rat == 4 ? total+1:total}, 0),
+      //     '5': d.reduce((total, id) => {return id.avg_rat == 5 ? total+1:total}, 0),
+      //     '6': d.reduce((total, id) => {return id.avg_rat == 6 ? total+1:total}, 0),
+      //     '7': d.reduce((total, id) => {return id.avg_rat == 7 ? total+1:total}, 0),
+      //     '8': d.reduce((total, id) => {return id.avg_rat == 8 ? total+1:total}, 0),
+      //     '9': d.reduce((total, id) => {return id.avg_rat == 9 ? total+1:total}, 0)
+      //   }
+      // })
+      // console.log('***')
+      // console.log(xyz)
+
+
+    
+
+      var xScale = d3.scaleLinear().range([margin.left, width - margin.right - margin.left]);
+      var yScale = d3.scaleLinear().rangeRound([height-margin.top-margin.bottom, 0]);
+      xScale.domain([2015,2019]);
+      // #TODO: update after javascript 
+      yScale.domain([(0), d3.max(slices, function(c) {
+          return d3.max(c.values, function(d) {
+              return d.measurement; });
+              })
+          ]);
 
 
 
