@@ -6,10 +6,13 @@
   <title>Games Rating: 2015 - 2019</title>
   <style>
     /* <!-- define CSS rules --> */
-    .point {
+    /* .point {
   stroke: none;
   fill: #9c9c9c;
-  }
+  } */
+  /* .bar_chart {
+    display: none
+    } */
   </style>
 </head>
 
@@ -29,8 +32,8 @@
 
 
     // define the dimensions and margins for the bar chart
-    // var margin = ({top: 0, right: 0, bottom: 0, left: 0});
-    var margin = ({top: 20, right: 30, bottom: 30, left: 40});
+    var margin = ({top: 0, right: 0, bottom: 0, left: 0});
+    // var margin = ({top: 20, right: 30, bottom: 30, left: 40});
     var width = 960 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
 
@@ -71,6 +74,16 @@
       // console.log('***')
       // console.log(date_filtered_data)
 
+
+      // goal. 
+      // [
+      //  {year: 2015 
+            // [0: {'game1_name':usr_rat, 'game2_name':usr_rat}]
+      //  }
+    
+      // ]
+
+
       var xyz = [2015,2016,2017,2018,2019].map((year) => {
         return data.filter((x) => {return x.year == year})
       }).map((d) => {
@@ -100,34 +113,80 @@
     // console.log('id', id)
           return {
                 id: id.year,
-                values: [ {
+                values: [ 
+                          // {year:id.year}, // didn't work, broke the lines :(
+                          {
                         rank: 0,
                         measurement: id[0] },
-                         {
+                          {
                         rank: 1,
                         measurement: id[1] },
-                         {
+                          {
                         rank: 2,
                         measurement: id[2] },
-                         {
+                          {
                         rank: 3,
                         measurement: id[3] },
-                         {
+                          {
                         rank: 4,
                         measurement: id[4] },
-                         {
+                          {
                         rank: 5,
                         measurement: id[5] },
-                         {
+                          {
                         rank: 6,
                         measurement: id[6] },
-                         {
+                          {
                         rank: 7,
                         measurement: id[7] },
-                         {
+                          {
                         rank: 8,
                         measurement: id[8] },
-                         {
+                          {
+                        rank: 9,
+                        measurement: id[9] },
+                        ]
+                    };
+                })
+        console.log('*** zyx ***')
+        console.log(zyx)
+
+
+        var zyx_p = xyz.map(function(id) {
+    // console.log('***')
+    // console.log('id', id)
+          return {
+                id: id.year,
+                values: [ 
+                          {year:id.year}, // made new data for the points
+                          {
+                        rank: 0,
+                        measurement: id[0] },
+                          {
+                        rank: 1,
+                        measurement: id[1] },
+                          {
+                        rank: 2,
+                        measurement: id[2] },
+                          {
+                        rank: 3,
+                        measurement: id[3] },
+                          {
+                        rank: 4,
+                        measurement: id[4] },
+                          {
+                        rank: 5,
+                        measurement: id[5] },
+                          {
+                        rank: 6,
+                        measurement: id[6] },
+                          {
+                        rank: 7,
+                        measurement: id[7] },
+                          {
+                        rank: 8,
+                        measurement: id[8] },
+                          {
                         rank: 9,
                         measurement: id[9] },
                         ]
@@ -317,14 +376,34 @@
         .enter()
         // .append("g")
         .append("circle")
-        // .attr("id","circle")
-        .attr("cx", function(d) {console.log('d',d, 'd.count', d.rank); return xScale(d.rank) + margin.left; })      
-        .attr("cy", function(d) {console.log('d',d, 'd.measurement', d.measurement);return yScale(d.measurement) + margin.top; })
+        .attr("id","circle_sizer")
+        .attr("cx", function(d) {return xScale(d.rank) + margin.left; })      
+        .attr("cy", function(d) {return yScale(d.measurement) + margin.top; })
+        // .attr("cx", function(d) {console.log('d',d, 'd.count', d.rank); return xScale(d.rank) + margin.left; })      
+        // .attr("cy", function(d) {console.log('d',d, 'd.measurement', d.measurement);return yScale(d.measurement) + margin.top; })
+      //   .attr("r", function (d) {console.log('mouse_on?', d); if (d.mouse_on == true) {
+      //     return 15
+      // }
+      // else {
+      //     return 5
+      // }})
         .attr("r", 5)
-
-        .style("fill",function(d) { return zyx[i].color; });
+        // .data([{'year':zyx[i].year, 'rank':i}])
+        .style("fill",function(d) { return zyx[i].color; })
+        // .on('mouseover', function(d) {console.log(d,i,zyx[i].id)})
+        .on('mouseover', function(d) {handleMouseOver(d,zyx[i].id); mouseGrower(d); d3.select(this).attr("r",25)})
+        .on('mouseout', function(d) {handleMouseOut(d); mouseShrinker(d); d3.select(this).attr("r",1)})
       }
-
+      function mouseGrower(d) {
+        // console.log('d',d,'these',these)
+        // console.log('this', this)
+        // d3.select(this).attr("r",25) // didn't work
+        // d3.selectAll('#circle_sizer').attr("r", 5) // didn't pass :(
+      }
+      function mouseShrinker() {
+        // d3.selectAll('#circle_sizer').attr("r", 2) // didn't pass :(
+      }
+      
       // Testing without the loop
       // points still in 'wrong' spot! Fuck this auto-grading bullshit! with no help.
       // i = 0
@@ -440,10 +519,25 @@
 
     // Only do on mouse over event.
 
+    function handleMouseOver(d,year) {
+      console.log('handleMouseOver(',d,year,')')
+    // d.mouse_on = true
+    // console.log(d)
+
+    // svg_barr.style("display", "block") // FUCK THIS CLASS for it's shit directions.
+    
+
+    mouse_data = data.filter((md) => {return md.year == year && md.avg_rat == d.rank})
+    mouse_data = mouse_data.sort((a,b) => b.usr_rat - a.usr_rat)
+    mouse_data = mouse_data.slice(0,5)
+
+    console.log(mouse_data)
+    
+
     // Creating Div
     d3.select("body").append("div")
     .attr("id", "bar_chart_title")
-    .text("Top 5 Most Rated Games of {YEAR} with Rating {RATING}")
+    .text("Top 5 Most Rated Games of " + year + " with Rating " + d.rank)
 
     var svg_bar = d3.select("body")
                     .append("svg")
@@ -455,57 +549,133 @@
       .attr("id", "container_2")
 
     // This just moves the entire svg.
-    svg_bar.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    // svg_bar.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    //----------------------------SCALES----------------------------//
-    var xScale_bar = d3.scaleLinear()
-                        .range([margin.left, width - margin.right - margin.left])
-                        .domain([0,9]);
+    // //----------------------------SCALES----------------------------//
+    // var xScale_bar = d3.scaleLinear()
+    //                     .range([margin.left, width - margin.right - margin.left])
+    //                     .domain([0,d3.max(mouse_data, function(d) {return d.usr_rat})]);
     
-    var yScale_bar = d3.scaleLinear()
-                        .rangeRound([height-margin.top-margin.bottom, 0])
-                        .domain([0,5]);
+    // var yScale_bar = d3.scaleBand()
+    //                     // .range([height-margin.top-margin.bottom, 0])
+    //                     .range([height-margin.top-margin.bottom, 0])
+    //                     .domain(mouse_data.map(function(d) {return d.name}))
+    //                     .padding(.1);
 
-      //-----------------------------AXES-----------------------------//
-      var y_axis_bar = d3.axisLeft()
-          .ticks(5)
-          .scale(yScale_bar);
+    //   //-----------------------------AXES-----------------------------//
+    //   // var y_axis_bar = d3.axisLeft()
+    //   //     .ticks(mouse_data.length)
+    //   //     .scale(yScale_bar);
 
-      var x_axis_bar = d3.axisBottom()
-          .ticks(10)
-          .scale(xScale_bar);
+    //   svg_bar.select("g").append("g")
+    //     .call(d3.axisLeft(yScale_bar))
+    //     .attr("transform", "translate(" + margin.left*2 + "," + margin.top + ")");
+
+    //   var x_axis_bar = d3.axisBottom()
+    //       .ticks(10)
+    //       .scale(xScale_bar);
 
 
+    // Add X axis
+    var x = d3.scaleLinear()
+        .domain([0, d3.max(mouse_data, function(d) {return d.usr_rat})])
+        // .range([ margin.left + 80, (width - margin.left - margin.right + 80)]);
+        .range([ margin.left, (width - margin.left - margin.right)]);
+      svg_bar.select("g").append("g")
+      .attr("id", "x-axis-bars")
+        .attr("transform", "translate(0," + (height - margin.bottom - margin.top) + ")")
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+          .attr("transform", "translate(" + (margin.left) + "," + margin.top + ")")
+          .style("text-anchor", "end");
+
+      // Y axis
+      var y = d3.scaleBand()
+        .range([ margin.top, (height - margin.top - margin.bottom) ])
+        .domain(mouse_data.map(function(d) { return d.name.substring(0, 10); }))
+        .padding(.1);
       svg_bar.select("g")
         .append("g")
-				.attr("class", "axis")
-				.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
-        .attr("id",'x-axis-bars')
-				.call(x_axis_bar);
+        .attr("id", "y-axis-bars")
+        .call(d3.axisLeft(y))
+        // .attr("transform", "translate(" + (margin.left) + "," + 0 + ")")
+        .attr("transform", "translate(" + (margin.left + 80) + "," + 0 + ")")
+        
+
+    if (mouse_data.length == 0) {
+      console.log('no data in the mouse!');
+      svg_bar.style("display", "none")
+      return;
+    }
+
+      //Bars
+      svg_bar.select("g")
+          .append("g")
+          .attr("id", "bars")
+          .selectAll("myRect")
+          .data(mouse_data)
+          .enter()
+          .append("rect")
+          .attr("x", x(0) )
+          .attr("y", function(d) { return y(d.name.substring(0, 10)); })
+          .attr("width", function(d) { return x(d.usr_rat); })
+          .attr("height", y.bandwidth() )
+          .attr("fill", "#69b3a2")
+
+      // svg_bar.select("g")
+      //   .append("g")
+			// 	.attr("class", "axis")
+			// 	.attr("transform", "translate(" + (margin.left - 0) + "," + (height - margin.bottom + 2) + ")")
+      //   .attr("id",'x-axis-bars')
+			// 	.call(x_axis_bar);
 
       svg_bar.append("text")
         .attr("id", "bar_x_axis_label")
         .attr("text-anchor", "end")
         .attr("x", (width + margin.left + margin.right)/2 )
         .attr("y", height - margin.top + 24)
-        .attr("x", (width + margin.left + margin.right)/2 )
-        .attr("y", height - margin.top + 24)
-        .text("Games");
+        .text("Number of Users");
       
-      svg_bar.select("g")
-        .append("g")
-				.attr("class", "axis")
-				.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
-        .attr("id",'y-axis-bars')
-				.call(y_axis_bar)
+      // svg_bar.select("g")
+      //   .append("g")
+			// 	.attr("class", "axis")
+			// 	.attr("transform", "translate(" + (margin.left + 40) + "," + margin.top + ")")
+      //   .attr("id",'y-axis-bars')
+			// 	.call(y_axis_bar)
       
       svg_bar.append("text")
-        .attr("id", "bar_x_axis_label")
+        .attr("id", "bar_y_axis_label")
         .attr("text-anchor", "end")
         .attr("x", -height/2+88)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
-        .text("Number of Users");
+        .text("Games");
+      
+      // svg_bar.select("g")
+      //       .append("g")
+      //       .attr("id","bars")
+      //       .selectAll("myRect")
+      //       .data(mouse_data)
+      //       .enter()
+      //       .append("rect")
+      //       .attr("x", xScale_bar(0) )
+      //       .attr("y", function(d) { return yScale_bar(d.name); })
+      //       .attr("width", function(d) { return xScale_bar(d.usr_rat); })
+      //       .attr("height", yScale_bar.bandwidth() )
+      //       .attr("fill", "red")
+
+    }
+
+    function handleMouseOut(d) {
+      console.log('out of ',d)
+      // d.mouse_on = false
+      // console.log(d)
+      d3.select('#bar_chart_title').remove()
+      d3.select('#bar_chart').remove();
+
+    }
+    
+
 
 
 
