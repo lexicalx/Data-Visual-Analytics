@@ -1,8 +1,9 @@
+#%%
 import numpy as np
 import time
 import argparse
 import sys
-
+#%%
 """
 Below is code for the PageRank algorithm (power iteration).
 
@@ -15,10 +16,10 @@ over dataset multiple times and update the PageRank value based on equation ment
 """
 
 def author():                                                                                             
-        return "gburdell3" # replace gburdell3 with your Georgia Tech username.                                                                                             
+    return "tjordan60" # replace gburdell3 with your Georgia Tech username.                                                                                             
                                                                                               
 def gtid():                                                                                               
-    return 987654321 # replace with your GT ID number      
+    return 903749459 # replace with your GT ID number      
 
 class PageRank:
     def __init__(self, edge_file):
@@ -42,8 +43,23 @@ class PageRank:
 
         ### Implement your code here
         #############################################
-            pass
-
+            self.node_degree[source] = self.node_degree.get(source,0) + 1
+            # if source in self.node_degree:
+            #     self.node_degree[source] += 1
+            # else:
+            #     self.node_degree[source] = 1
+            # if self.node_degree[source] > self.node_degree[self.max_node_id]: #* this was the node_id with the max node_degree.
+            #     self.max_node_id = source
+            
+            if source > self.max_node_id or target > self.max_node_id:
+                self.max_node_id = max(source, target)
+            # print('self.node_degree')
+            # print(self.node_degree)
+            # print()
+            
+        # #? missing values are 0?
+        for i in range(self.max_node_id):
+            self.node_degree[i] = self.node_degree.get(i,0) #? default of 1 to prevent ZeroDivisionError
         #############################################
 
         print("Max node id: {}".format(self.max_node_id))
@@ -73,8 +89,31 @@ class PageRank:
 
         ### Implement your code here
         #############################################
-                pass
+                
+                # print(f'self.node_degree {self.node_degree}')
+                # from itertools import islice
 
+                # def take(n, iterable):
+                #     """Return the first n items of the iterable as a list."""
+                #     return list(islice(iterable, n))
+                
+                # k3 = take(10, self.node_degree.items())
+                # print(k3)
+                # for x in range(max_node_id):
+                #     print(f'x {x}')
+                #     print(f'pr_values[x] {pr_values[x]}')
+                #     print(f'self.node_degree[x] {self.node_degree[x]}')
+                #     print('len', len(self.node_degree))
+                #     print(f'max_node_id {max_node_id}')
+                #     print(f'pr_values[x]/self.node_degree[x] {pr_values[x]/self.node_degree[x]}')
+                # k2 = [pr_values[x]/self.node_degree[x] for x in range(max_node_id)]
+                # print(k2)
+                # new_pr_values[source] = (1-damping_factor) * node_weights[source] + damping_factor * sum([pr_values[x]/self.node_degree[x] for x in range(len(pr_values))])
+                new_pr_values[target] += pr_values[source]/self.node_degree[source] #* doing the sumation
+            
+            for target in range(self.max_node_id + 1):
+                new_pr_values[target] = (1-damping_factor) * node_weights[target] + damping_factor * new_pr_values[target]
+            pr_values = new_pr_values
         #############################################
 
         print ("Completed {0}/{1} iterations. {2} seconds elapsed.".format(it + 1, iterations, time.time() - start_time))
